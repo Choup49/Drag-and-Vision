@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Computer Vision",
+  "description": "A visual interface for the PyVisionLab modular computer vision framework. Build pipelines, solve CV challenges, and write custom Python nodes with AI assistance.",
+  "requestFramePermissions": []
+}
