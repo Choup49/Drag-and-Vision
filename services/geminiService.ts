@@ -107,21 +107,27 @@ export const validateChallengeSolution = async (
     }
 };
 
-export const analyzeAndFixCode = async (code: string): Promise<{ fixedCode: string; explanation: string }> => {
+export const analyzeAndFixCode = async (code: string, optimizationPreference: number = 5): Promise<{ fixedCode: string; explanation: string }> => {
   if (!ai) return { fixedCode: code, explanation: "API Key Missing" };
 
   try {
     const prompt = `
     You are a Senior Computer Vision Engineer. 
     Analyze the following Python/OpenCV code.
+    
+    Optimization Strategy (Scale 1-10, user selected: ${optimizationPreference}):
+    - If > 5: Prioritize FPS/Speed aggressively (e.g., reduce resolution using cv2.resize, skip frames, use threading, simplier algorithms).
+    - If < 5: Prioritize Accuracy/Quality (e.g., keep resolution, use more precise algo, no skipping).
+    - If 5: Balanced approach.
+
     1. Fix any syntax or logical errors.
-    2. Optimize for performance (e.g. vectorization, standard OpenCV practices).
+    2. Optimize based on the preference above.
     3. Refactor for readability.
     
     Input Code:
     ${code}
 
-    Return JSON: { "fixedCode": "Full python code string...", "explanation": "Bulleted list of changes made." }
+    Return JSON: { "fixedCode": "Full python code string...", "explanation": "Bulleted list of changes made and optimization techniques applied." }
     `;
 
     const response = await ai.models.generateContent({

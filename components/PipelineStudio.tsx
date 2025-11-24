@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { AVAILABLE_NODES, TRANSLATIONS, MOCK_COMMUNITY_NODES } from '../constants';
-import { PipelineNode, PipelineConnection, NodeType, NodeDefinition, Position, Language, OptimizerConfig, Challenge } from '../types';
-import { Plus, Trash2, Download, X, Zap, Move, FileVideo, Camera, Cpu, Box, Layers, ZoomIn, ZoomOut, RotateCcw, Info, Settings2, CheckCircle, AlertCircle, Play, Map, Globe, DownloadCloud } from 'lucide-react';
+import { PipelineNode, PipelineConnection, NodeType, NodeDefinition, Position, Language, OptimizerConfig, Challenge, ApiConfig } from '../types';
+import { Plus, Trash2, Download, X, Zap, Move, FileVideo, Camera, Cpu, Box, Layers, ZoomIn, ZoomOut, RotateCcw, Info, Settings2, CheckCircle, AlertCircle, Play, Map, Globe, DownloadCloud, Eye, Network } from 'lucide-react';
 import { validateChallengeSolution } from '../services/geminiService';
 
 const GRID_SIZE = 20;
@@ -15,6 +15,152 @@ interface PipelineStudioProps {
     onImportCommunityNode?: (node: NodeDefinition) => void;
 }
 
+// --- MODAL COMPONENT FOR CONFIG ---
+interface NodeConfigModalProps {
+    node: PipelineNode;
+    language: Language;
+    onClose: () => void;
+    onSave: (nodeId: string, params: any) => void;
+}
+
+const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, language, onClose, onSave }) => {
+    const t = TRANSLATIONS[language];
+    // Default config for API node
+    const [config, setConfig] = useState<ApiConfig>(node.params.apiConfig || {
+        url: 'http://localhost:5000/api',
+        method: 'POST',
+        headers: [],
+        timeout: 5,
+        sendImage: false,
+        imageResizeWidth: 640,
+        asyncMode: true
+    });
+
+    const [newHeaderKey, setNewHeaderKey] = useState('');
+    const [newHeaderVal, setNewHeaderVal] = useState('');
+
+    const addHeader = () => {
+        if (!newHeaderKey || !newHeaderVal) return;
+        setConfig(c => ({
+            ...c,
+            headers: [...c.headers, { id: crypto.randomUUID(), key: newHeaderKey, value: newHeaderVal, isSecret: false }]
+        }));
+        setNewHeaderKey('');
+        setNewHeaderVal('');
+    };
+
+    const removeHeader = (id: string) => {
+        setConfig(c => ({ ...c, headers: c.headers.filter(h => h.id !== id) }));
+    };
+
+    const handleSave = () => {
+        onSave(node.uuid, { apiConfig: config });
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-slate-900 rounded-xl w-full max-w-lg border border-slate-700 shadow-2xl p-6 animate-in zoom-in-95">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <Network className="w-5 h-5 text-cyan-400" /> {t.apiConfig}
+                    </h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    {/* URL & Method */}
+                    <div className="grid grid-cols-4 gap-4">
+                        <div className="col-span-3">
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.url}</label>
+                            <input 
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
+                                value={config.url}
+                                onChange={(e) => setConfig({...config, url: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.method}</label>
+                            <select 
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
+                                value={config.method}
+                                onChange={(e) => setConfig({...config, method: e.target.value as any})}
+                            >
+                                <option>POST</option>
+                                <option>GET</option>
+                                <option>PUT</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Headers */}
+                    <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+                         <label className="block text-xs font-bold text-slate-500 uppercase mb-2">{t.headers}</label>
+                         <div className="space-y-2 mb-3">
+                             {config.headers.map(h => (
+                                 <div key={h.id} className="flex items-center gap-2 text-sm">
+                                     <span className="font-mono text-cyan-400 bg-slate-900 px-2 py-1 rounded border border-slate-700">{h.key}</span>
+                                     <span className="text-slate-400">=</span>
+                                     <span className="font-mono text-slate-300 truncate max-w-[120px]">{h.isSecret ? '••••••' : h.value}</span>
+                                     <button onClick={() => removeHeader(h.id)} className="ml-auto text-red-400 hover:text-red-300"><X className="w-3 h-3"/></button>
+                                 </div>
+                             ))}
+                             {config.headers.length === 0 && <span className="text-xs text-slate-500 italic">No headers configured.</span>}
+                         </div>
+                         <div className="flex gap-2">
+                             <input placeholder={t.key} className="flex-1 bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white" value={newHeaderKey} onChange={e => setNewHeaderKey(e.target.value)} />
+                             <input placeholder={t.value} type="password" className="flex-1 bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white" value={newHeaderVal} onChange={e => setNewHeaderVal(e.target.value)} />
+                             <button onClick={addHeader} className="bg-cyan-600 text-white px-2 rounded hover:bg-cyan-500 text-xs font-bold">{t.addHeader}</button>
+                         </div>
+                    </div>
+
+                    {/* Options */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <label className="flex items-center gap-3 p-3 bg-slate-800/30 rounded border border-slate-800 cursor-pointer hover:border-cyan-500/50">
+                            <input 
+                                type="checkbox" 
+                                checked={config.sendImage} 
+                                onChange={(e) => setConfig({...config, sendImage: e.target.checked})}
+                                className="w-4 h-4 rounded border-slate-600 text-cyan-600 focus:ring-cyan-500 bg-slate-900" 
+                            />
+                            <span className="text-sm font-medium text-slate-300">{t.sendImage}</span>
+                        </label>
+                         <label className="flex items-center gap-3 p-3 bg-slate-800/30 rounded border border-slate-800 cursor-pointer hover:border-cyan-500/50">
+                            <input 
+                                type="checkbox" 
+                                checked={config.asyncMode} 
+                                onChange={(e) => setConfig({...config, asyncMode: e.target.checked})}
+                                className="w-4 h-4 rounded border-slate-600 text-cyan-600 focus:ring-cyan-500 bg-slate-900" 
+                            />
+                            <span className="text-sm font-medium text-slate-300">{t.asyncMode}</span>
+                        </label>
+                    </div>
+
+                    {config.sendImage && (
+                        <div>
+                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.resize}</label>
+                             <input 
+                                type="number"
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
+                                value={config.imageResizeWidth}
+                                onChange={(e) => setConfig({...config, imageResizeWidth: parseInt(e.target.value)})}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                <div className="mt-6 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium">Cancel</button>
+                    <button onClick={handleSave} className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-bold shadow-lg shadow-cyan-500/20">{t.saveConfig}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, activeChallenge, onExitChallenge, onImportCommunityNode }) => {
   const [nodes, setNodes] = useState<PipelineNode[]>([]);
   const [connections, setConnections] = useState<PipelineConnection[]>([]);
@@ -22,6 +168,9 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 });
   
+  // Config Modal State
+  const [configNodeId, setConfigNodeId] = useState<string | null>(null);
+
   // Viewport State
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Position>({ x: 0, y: 0 });
@@ -36,16 +185,9 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   const [linkingSourceId, setLinkingSourceId] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState<Position>({ x: 0, y: 0 });
 
-  // Code Preview & Optimizer
+  // Code Preview
   const [showCode, setShowCode] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
-  const [showOptimizer, setShowOptimizer] = useState(false);
-  const [optimizerConfig, setOptimizerConfig] = useState<OptimizerConfig>({
-      resolutionScale: 1.0,
-      frameSkip: 0,
-      useThreading: false,
-      enableCuda: false
-  });
 
   // Validation State
   const [isValidating, setIsValidating] = useState(false);
@@ -99,6 +241,10 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   const removeNode = (uuid: string) => {
     setNodes(nodes.filter(n => n.uuid !== uuid));
     setConnections(connections.filter(c => c.sourceNodeId !== uuid && c.targetNodeId !== uuid));
+  };
+
+  const updateNodeParams = (uuid: string, newParams: any) => {
+      setNodes(nodes.map(n => n.uuid === uuid ? { ...n, params: { ...n.params, ...newParams } } : n));
   };
 
   const getNodeDef = (defId: string) => allNodes.find(n => n.id === defId) || MOCK_COMMUNITY_NODES.find(n => n.id === defId);
@@ -196,12 +342,10 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   const generatePython = () => {
     let code = `import cv2\nimport numpy as np\n`;
     
-    if (optimizerConfig.useThreading) {
-         code += `from threading import Thread\nimport queue\n`;
-    }
-
-    if (optimizerConfig.resolutionScale < 1.0 || optimizerConfig.frameSkip > 0) {
-         code += `import time\n`;
+    // Check for API usage
+    const hasApiNode = nodes.some(n => n.defId === 'net_http');
+    if (hasApiNode) {
+        code += `import requests\nimport json\nimport base64\nimport threading\n`;
     }
 
     // Imports
@@ -213,15 +357,19 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     imports.forEach(imp => {
         if (!code.includes(`import ${imp}`)) {
             if (imp.includes(' as ')) code += `import ${imp}\n`;
-            else if (imp !== 'cv2' && imp !== 'numpy') code += `import ${imp}\n`;
+            else if (imp !== 'cv2' && imp !== 'numpy' && imp !== 'requests' && imp !== 'json' && imp !== 'base64' && imp !== 'threading') code += `import ${imp}\n`;
         }
     });
 
-    code += `\n# --- OPTIMIZATION CONFIG ---\n`;
-    code += `TARGET_SCALE = ${optimizerConfig.resolutionScale}\n`;
-    code += `FRAME_SKIP = ${optimizerConfig.frameSkip}\n`;
-    if (optimizerConfig.enableCuda) {
-        code += `try:\n    cv2.cuda.setDevice(0)\n    print("CUDA Enabled")\nexcept: print("CUDA Not Found")\n`;
+    // Helper functions
+    if (hasApiNode) {
+        code += `\n# --- API HELPER ---\n`;
+        code += `def send_api_request(url, method, headers, payload):\n`;
+        code += `    try:\n`;
+        code += `        if method == 'POST':\n            requests.post(url, json=payload, headers=headers, timeout=5)\n`;
+        code += `        elif method == 'GET':\n            requests.get(url, params=payload, headers=headers, timeout=5)\n`;
+        code += `        elif method == 'PUT':\n            requests.put(url, json=payload, headers=headers, timeout=5)\n`;
+        code += `    except Exception as e:\n        print(f"API Error: {e}")\n`;
     }
 
     code += `\n# --- PIPELINE SETUP ---\n`;
@@ -260,10 +408,6 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     code += `while True:\n`;
     code += `    frame_count += 1\n`;
     
-    if (optimizerConfig.frameSkip > 0) {
-        code += `    if frame_count % (FRAME_SKIP + 1) != 0:\n        cap.grab()\n        continue\n`;
-    }
-
     // Generate Processing Loop
     executionOrder.forEach(uuid => {
         const node = nodes.find(n => n.uuid === uuid)!;
@@ -276,6 +420,42 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
         }
 
         const outputVar = `frame_${uuid.split('-')[0]}`;
+        
+        // SPECIAL HANDLING FOR API NODE
+        if (def.id === 'net_http') {
+             const conf = node.params.apiConfig as ApiConfig;
+             const url = conf?.url || "http://localhost:5000";
+             const method = conf?.method || "POST";
+             const headers = conf?.headers ? `{${conf.headers.map(h => `'${h.key}': '${h.value}'`).join(', ')}}` : '{}';
+             const isAsync = conf?.asyncMode ?? true;
+             const sendImg = conf?.sendImage ?? false;
+             const resizeW = conf?.imageResizeWidth || 640;
+
+             code += `\n    # API Request Node\n`;
+             code += `    payload = {'timestamp': frame_count}\n`;
+             if (sendImg) {
+                 code += `    # Serialize Image\n`;
+                 code += `    img_payload = ${inputVar}\n`;
+                 if (resizeW > 0) {
+                     code += `    h, w = img_payload.shape[:2]\n`;
+                     code += `    if w > ${resizeW}:\n`;
+                     code += `        scale = ${resizeW} / w\n`;
+                     code += `        img_payload = cv2.resize(img_payload, (0,0), fx=scale, fy=scale)\n`;
+                 }
+                 code += `    _, buffer = cv2.imencode('.jpg', img_payload, [int(cv2.IMWRITE_JPEG_QUALITY), 70])\n`;
+                 code += `    payload['image'] = base64.b64encode(buffer).decode('utf-8')\n`;
+             }
+             
+             if (isAsync) {
+                 code += `    threading.Thread(target=send_api_request, args=('${url}', '${method}', ${headers}, payload)).start()\n`;
+             } else {
+                 code += `    send_api_request('${url}', '${method}', ${headers}, payload)\n`;
+             }
+             code += `    ${outputVar} = ${inputVar} # Pass through\n`;
+
+             return; // Skip normal template processing
+        }
+
         let nodeCode = def.pythonTemplate;
         
         if (def.category === 'ai') {
@@ -283,11 +463,6 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
              if (parts.length > 1) nodeCode = parts[1];
         }
         
-        // Apply Resolution Scaling at start
-        if (def.type === NodeType.SOURCE && optimizerConfig.resolutionScale < 1.0) {
-             nodeCode += `\nif ret: {output} = cv2.resize({output}, (0,0), fx=TARGET_SCALE, fy=TARGET_SCALE)`;
-        }
-
         nodeCode = nodeCode.split('{input}').join(inputVar);
         nodeCode = nodeCode.split('{output}').join(outputVar);
         
@@ -319,11 +494,12 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
 
   const getIcon = (type: NodeType, lib: string) => {
       if (type === NodeType.SOURCE) return <Camera className="w-5 h-5" />;
-      if (type === NodeType.OUTPUT) return <EyeIcon className="w-5 h-5" />;
+      if (type === NodeType.OUTPUT) return <Eye className="w-5 h-5" />;
       if (lib === 'MediaPipe') return <Zap className="w-5 h-5" />;
       if (lib === 'OpenCV') return <Cpu className="w-5 h-5" />;
       if (lib === 'Custom') return <Box className="w-5 h-5" />;
       if (lib === 'Community') return <Globe className="w-5 h-5" />;
+      if (lib === 'Connectivity') return <Network className="w-5 h-5" />;
       return <FileVideo className="w-5 h-5" />;
   };
 
@@ -333,11 +509,12 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     if (lib === 'MediaPipe') return 'border-purple-500/50 bg-slate-900';
     if (lib === 'Custom') return 'border-pink-500/50 bg-slate-900';
     if (lib === 'Community') return 'border-blue-500/50 bg-slate-900';
+    if (lib === 'Connectivity') return 'border-indigo-500/50 bg-slate-900';
     return 'border-cyan-500/50 bg-slate-900';
   };
 
   // Filter libraries for Challenge Mode (No Custom/Community in Challenge)
-  const libraries = activeChallenge ? ['Core', 'OpenCV', 'MediaPipe'] : ['Core', 'OpenCV', 'MediaPipe', 'Custom', 'Community'];
+  const libraries = activeChallenge ? ['Core', 'OpenCV', 'MediaPipe'] : ['Core', 'OpenCV', 'MediaPipe', 'Custom', 'Community', 'Connectivity'];
 
   const getChallengeTitle = (c: Challenge) => (language === 'fr' && c.title_fr ? c.title_fr : c.title);
   const getChallengeDesc = (c: Challenge) => (language === 'fr' && c.description_fr ? c.description_fr : c.description);
@@ -345,6 +522,16 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
 
   return (
     <div className="flex h-full bg-slate-950 overflow-hidden">
+      {/* Config Modal */}
+      {configNodeId && (
+          <NodeConfigModal 
+              node={nodes.find(n => n.uuid === configNodeId)!}
+              language={language}
+              onClose={() => setConfigNodeId(null)}
+              onSave={updateNodeParams}
+          />
+      )}
+
       {/* Library Sidebar */}
       <div className="w-72 bg-slate-900 border-r border-slate-800 flex flex-col z-20 shadow-xl">
         {activeChallenge ? (
@@ -389,6 +576,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
                   node.library === 'MediaPipe' ? 'bg-purple-500/20 text-purple-400' : 
                   node.library === 'Custom' ? 'bg-pink-500/20 text-pink-400' :
                   node.library === 'Community' ? 'bg-blue-500/20 text-blue-400' :
+                  node.library === 'Connectivity' ? 'bg-indigo-500/20 text-indigo-400' :
                   'bg-cyan-500/20 text-cyan-400'
               }`}>
                  {getIcon(node.type, node.library)}
@@ -530,6 +718,15 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
                                     {language === 'fr' && def.description_fr ? def.description_fr : def.description}
                                 </div>
                             </div>
+                            
+                            {/* SETTINGS BUTTON FOR CONNECTIVITY NODES OR OTHERS */}
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setConfigNodeId(node.uuid); }}
+                                className="text-slate-500 hover:text-cyan-400 p-1 hover:bg-slate-800 rounded"
+                            >
+                                <Settings2 className="w-3 h-3" />
+                            </button>
+
                             <button 
                                 onClick={(e) => { e.stopPropagation(); removeNode(node.uuid); }}
                                 className="text-slate-500 hover:text-red-400 p-1 hover:bg-slate-800 rounded"
@@ -565,7 +762,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
 
         {/* Overlay Controls */}
         <div className="absolute top-4 right-4 flex gap-3 z-30">
-             {activeChallenge ? (
+             {activeChallenge && (
                  <button 
                     onClick={handleValidate}
                     disabled={isValidating}
@@ -576,13 +773,6 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
                     {isValidating ? <Box className="w-4 h-4 animate-spin"/> : <CheckCircle className="w-4 h-4" />}
                     {isValidating ? t.verifying : t.verify}
                  </button>
-             ) : (
-                <button 
-                    onClick={() => setShowOptimizer(!showOptimizer)}
-                    className={`flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 shadow-lg transition-all ${showOptimizer ? 'border-cyan-500 text-cyan-400' : ''}`}
-                >
-                    <Settings2 className="w-4 h-4" /> {t.optimize}
-                </button>
              )}
 
              <button 
@@ -592,59 +782,6 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
                 <Download className="w-4 h-4" /> {t.export}
              </button>
         </div>
-
-        {/* Optimizer Panel */}
-        {showOptimizer && !activeChallenge && (
-            <div className="absolute top-16 right-4 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-4 z-30 animate-in slide-in-from-top-2 fade-in">
-                <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-yellow-400" /> {t.optimizerSettings}
-                </h3>
-                <div className="space-y-4">
-                    <div>
-                        <label className="flex justify-between text-xs text-slate-400 mb-2">
-                            <span>{t.resScale}</span>
-                            <span className="text-cyan-400">{Math.round(optimizerConfig.resolutionScale * 100)}%</span>
-                        </label>
-                        <input 
-                            type="range" min="0.1" max="1.0" step="0.1"
-                            value={optimizerConfig.resolutionScale}
-                            onChange={(e) => setOptimizerConfig({...optimizerConfig, resolutionScale: parseFloat(e.target.value)})}
-                            className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-cyan-500 [&::-webkit-slider-thumb]:rounded-full"
-                        />
-                    </div>
-                    <div>
-                        <label className="flex justify-between text-xs text-slate-400 mb-2">
-                            <span>{t.frameSkip}</span>
-                            <span className="text-cyan-400">{optimizerConfig.frameSkip} frames</span>
-                        </label>
-                        <input 
-                            type="range" min="0" max="10" step="1"
-                            value={optimizerConfig.frameSkip}
-                            onChange={(e) => setOptimizerConfig({...optimizerConfig, frameSkip: parseInt(e.target.value)})}
-                            className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-cyan-500 [&::-webkit-slider-thumb]:rounded-full"
-                        />
-                    </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                        <span className="text-xs text-slate-400">{t.threading}</span>
-                        <button 
-                            onClick={() => setOptimizerConfig(c => ({...c, useThreading: !c.useThreading}))}
-                            className={`w-8 h-4 rounded-full transition-colors ${optimizerConfig.useThreading ? 'bg-cyan-600' : 'bg-slate-700'} relative`}
-                        >
-                            <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${optimizerConfig.useThreading ? 'left-4.5' : 'left-0.5'}`} />
-                        </button>
-                    </div>
-                     <div className="flex items-center justify-between pt-2">
-                        <span className="text-xs text-slate-400">{t.cuda}</span>
-                        <button 
-                            onClick={() => setOptimizerConfig(c => ({...c, enableCuda: !c.enableCuda}))}
-                            className={`w-8 h-4 rounded-full transition-colors ${optimizerConfig.enableCuda ? 'bg-cyan-600' : 'bg-slate-700'} relative`}
-                        >
-                            <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${optimizerConfig.enableCuda ? 'left-4.5' : 'left-0.5'}`} />
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
 
         {/* Validation Modal */}
         {validationResult && (
@@ -733,9 +870,5 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     </div>
   );
 };
-
-const EyeIcon = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-);
 
 export default PipelineStudio;

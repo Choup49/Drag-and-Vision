@@ -18,7 +18,7 @@ export interface NodeDefinition {
   description: string;
   description_fr?: string;
   category: 'input' | 'transform' | 'ai' | 'utility' | 'output' | 'custom';
-  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom' | 'Community';
+  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom' | 'Community' | 'Connectivity';
   pythonClass: string;
   pythonTemplate: string;
   requiredImports?: string[];
@@ -31,11 +31,21 @@ export interface Position {
   y: number;
 }
 
+export interface ApiConfig {
+  url: string;
+  method: 'GET' | 'POST' | 'PUT';
+  headers: { id: string; key: string; value: string; isSecret: boolean }[];
+  timeout: number;
+  sendImage: boolean;
+  imageResizeWidth?: number; // 0 for no resize
+  asyncMode: boolean;
+}
+
 export interface PipelineNode {
   uuid: string;
   defId: string;
   position: Position;
-  params: Record<string, any>;
+  params: Record<string, any>; // Stores ApiConfig or other params
 }
 
 export interface PipelineConnection {
