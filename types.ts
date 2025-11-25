@@ -18,7 +18,7 @@ export interface NodeDefinition {
   description: string;
   description_fr?: string;
   category: 'input' | 'transform' | 'ai' | 'utility' | 'output' | 'custom';
-  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom' | 'Community' | 'Connectivity';
+  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom' | 'Community' | 'Connectivity' | 'GenAI';
   pythonClass: string;
   pythonTemplate: string;
   requiredImports?: string[];
@@ -41,11 +41,20 @@ export interface ApiConfig {
   asyncMode: boolean;
 }
 
+export interface DroidCamConfig {
+  ip: string;
+  port: string;
+}
+
+export interface OnnxConfig {
+  modelPath: string;
+}
+
 export interface PipelineNode {
   uuid: string;
   defId: string;
   position: Position;
-  params: Record<string, any>; // Stores ApiConfig or other params
+  params: Record<string, any>; // Stores ApiConfig, DroidCamConfig, OnnxConfig, etc.
 }
 
 export interface PipelineConnection {
@@ -66,6 +75,9 @@ export interface Challenge {
   objectives_fr?: string[];
   locked: boolean;
   isUserCreated?: boolean;
+  // New fields for progress tracking
+  isCompleted?: boolean;
+  completionDate?: string | null;
 }
 
 export interface OptimizerConfig {

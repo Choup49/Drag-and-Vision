@@ -6,6 +6,7 @@ import ChallengeMode from './components/ChallengeMode';
 import CustomFunctionEditor from './components/CustomFunctionEditor';
 import CodeCorrector from './components/CodeCorrector';
 import { ViewState, NodeDefinition, Language, Challenge } from './types';
+import { CHALLENGES } from './constants';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('STUDIO');
@@ -13,6 +14,7 @@ const App: React.FC = () => {
   const [customNodes, setCustomNodes] = useState<NodeDefinition[]>([]);
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [userChallenges, setUserChallenges] = useState<Challenge[]>([]);
+  const [completedChallenges, setCompletedChallenges] = useState<Record<string, { date: string }>>({});
 
   const handleCustomNodeCreated = (node: NodeDefinition) => {
     setCustomNodes(prev => [...prev, node]);
@@ -35,6 +37,21 @@ const App: React.FC = () => {
       setCurrentView('CHALLENGES');
   };
 
+  const handleChallengeComplete = (challengeId: string) => {
+      setCompletedChallenges(prev => ({
+          ...prev,
+          [challengeId]: { date: new Date().toISOString() }
+      }));
+  };
+
+  const getChallengesWithStatus = () => {
+      return [...CHALLENGES, ...userChallenges].map(c => ({
+          ...c,
+          isCompleted: !!completedChallenges[c.id],
+          completionDate: completedChallenges[c.id]?.date || null
+      }));
+  };
+
   const renderContent = () => {
     switch (currentView) {
       case 'STUDIO':
@@ -47,7 +64,8 @@ const App: React.FC = () => {
         return <ChallengeMode 
             language={language} 
             onEnterChallengeWorkspace={handleEnterChallengeWorkspace} 
-            userChallenges={userChallenges}
+            userChallenges={getChallengesWithStatus().filter(c => c.isUserCreated)}
+            allChallengesWithStatus={getChallengesWithStatus()} // Pass full list with status
             onSaveChallenge={(c) => setUserChallenges([...userChallenges, c])}
         />;
       case 'EDITOR':
@@ -62,6 +80,7 @@ const App: React.FC = () => {
                 language={language}
                 activeChallenge={activeChallenge}
                 onExitChallenge={handleExitChallenge}
+                onChallengeComplete={handleChallengeComplete}
             />
         );
       default:

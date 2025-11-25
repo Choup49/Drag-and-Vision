@@ -10,9 +10,10 @@ interface ChallengeModeProps {
     onEnterChallengeWorkspace: (challenge: Challenge) => void;
     userChallenges: Challenge[];
     onSaveChallenge: (c: Challenge) => void;
+    allChallengesWithStatus?: Challenge[]; // New prop for rendering static list with status
 }
 
-const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChallengeWorkspace, userChallenges, onSaveChallenge }) => {
+const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChallengeWorkspace, userChallenges, onSaveChallenge, allChallengesWithStatus }) => {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [hint, setHint] = useState<string>('');
   const [loadingHint, setLoadingHint] = useState(false);
@@ -64,9 +65,10 @@ const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChalleng
     setLoadingHint(false);
   };
 
-  const allChallenges = [...CHALLENGES, ...userChallenges];
+  // Use the merged list if provided, otherwise fallback (for safety)
+  const challengeList = allChallengesWithStatus || [...CHALLENGES, ...userChallenges];
 
-  const filteredChallenges = allChallenges.filter(c => {
+  const filteredChallenges = challengeList.filter(c => {
       if (diffFilter !== 'All' && c.difficulty !== diffFilter) return false;
       if (themeFilter !== 'All' && c.theme !== themeFilter) return false;
       return true;
@@ -272,8 +274,8 @@ const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChalleng
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredChallenges.map((challenge) => (
                     <div 
-                    key={challenge.id} 
-                    className={`group relative bg-slate-900 rounded-xl border border-slate-800 p-6 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-xl hover:-translate-y-1 ${challenge.locked ? 'opacity-60' : ''}`}
+                        key={challenge.id} 
+                        className={`group relative bg-slate-900 rounded-xl border border-slate-800 p-6 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-xl hover:-translate-y-1 ${challenge.locked ? 'opacity-60' : ''} ${challenge.isCompleted ? 'border-green-500/50 shadow-green-500/10' : ''}`}
                     >
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex gap-2">
@@ -289,8 +291,11 @@ const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChalleng
                                 {challenge.theme}
                             </span>
                         </div>
-                        {challenge.locked && <Lock className="w-4 h-4 text-slate-500" />}
-                        {challenge.isUserCreated && <PlusCircle className="w-4 h-4 text-purple-500" />}
+                        <div className="flex items-center gap-2">
+                            {challenge.isCompleted && <CheckCircle className="w-5 h-5 text-green-500 absolute top-3 right-3 z-10 animate-in fade-in" />}
+                            {challenge.locked && <Lock className="w-4 h-4 text-slate-500" />}
+                            {challenge.isUserCreated && <PlusCircle className="w-4 h-4 text-purple-500" />}
+                        </div>
                     </div>
                     
                     <h3 className="text-xl font-bold text-slate-100 mb-2 group-hover:text-cyan-400 transition-colors">
@@ -306,10 +311,15 @@ const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChalleng
                         </button>
                     ) : (
                         <button 
-                        onClick={() => handleStart(challenge)}
-                        className="w-full py-2.5 rounded-lg bg-slate-800 text-white text-sm font-medium border border-slate-700 hover:bg-cyan-600 hover:border-cyan-500 transition-all flex items-center justify-center gap-2"
+                            onClick={() => handleStart(challenge)}
+                            className={`w-full py-2.5 rounded-lg text-sm font-medium border transition-all flex items-center justify-center gap-2 ${
+                                challenge.isCompleted 
+                                    ? 'bg-green-700/50 border-green-500 text-green-200 hover:bg-green-700/70' 
+                                    : 'bg-slate-800 border-slate-700 text-white hover:bg-cyan-600 hover:border-cyan-500'
+                            }`}
                         >
-                        {t.start} <ArrowRight className="w-4 h-4" />
+                            {challenge.isCompleted ? `${t.replay}` : `${t.start}`} 
+                            <ArrowRight className="w-4 h-4" />
                         </button>
                     )}
                     </div>

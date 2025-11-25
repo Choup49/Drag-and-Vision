@@ -25,6 +25,7 @@ export const TRANSLATIONS = {
     dragStart: 'Drag nodes from the library to start building.',
     back: 'Back',
     start: 'Start Challenge',
+    replay: 'Replay Challenge',
     locked: 'Locked',
     consultAI: 'Consult AI',
     aiHint: 'AI Hint',
@@ -48,7 +49,7 @@ export const TRANSLATIONS = {
     all: 'All',
     missionBrief: 'Mission Brief',
     correctorTitle: 'Code Optimizer', // Renamed
-    correctorDesc: 'Refactor, fix, and optimize your Computer Vision pipeline.',
+    correctorDesc: 'Refactor, fix, and optimize your Computer Vision pipeline with Gemini Intelligence.',
     pasteCode: 'Paste Python Code...',
     analyzeBtn: 'Optimize Code',
     analyzing: 'Optimizing...',
@@ -58,7 +59,10 @@ export const TRANSLATIONS = {
     transpileBtn: 'Transpile to C++',
     transpiling: 'Transpiling...',
     community: 'Community',
-    import: 'Import',
+    import: 'Import Pipeline',
+    importDesc: 'Paste Python code to reverse-engineer it into a visual graph.',
+    importBtn: 'Import',
+    importing: 'Analyzing AST...',
     creatorMode: 'Creator Mode',
     createChallenge: 'Create Challenge',
     challengeTitle: 'Challenge Title',
@@ -77,15 +81,24 @@ export const TRANSLATIONS = {
     key: 'Key',
     value: 'Value',
     sendImage: 'Send Image (Base64)',
-    resize: 'Resize Width (px)',
+    resize: 'Largeur Redim. (px)',
     asyncMode: 'Async Mode (Non-blocking)',
     saveConfig: 'Save Configuration',
     connectivity: 'Connectivity',
+    genai: 'GenAI / VLM',
     // Optimizer Slider
     optPreference: 'Optimization Preference',
     quality: 'Max Quality (Accuracy)',
     speed: 'Max FPS (Speed)',
     balanced: 'Balanced (50/50)',
+    // DroidCam
+    droidCamConfig: 'DroidCam Configuration',
+    ipAddress: 'IP Address',
+    port: 'Port',
+    droidCamHelp: 'Use the DroidCam app on your phone. Enter the IP/Port shown.',
+    // ONNX
+    onnxConfig: 'ONNX Model Configuration',
+    modelPath: 'Model File Path (.onnx)',
   },
   fr: {
     studio: 'Studio Pipeline',
@@ -110,6 +123,7 @@ export const TRANSLATIONS = {
     dragStart: 'Glissez des nodes depuis la bibliothèque.',
     back: 'Retour',
     start: 'Lancer le défi',
+    replay: 'Rejouer le défi',
     locked: 'Verrouillé',
     consultAI: 'Consulter l\'IA',
     aiHint: 'Indice IA',
@@ -133,7 +147,7 @@ export const TRANSLATIONS = {
     all: 'Tous',
     missionBrief: 'Ordre de Mission',
     correctorTitle: 'Optimiseur de Code', // Renamed
-    correctorDesc: 'Refactorisez, corrigez et optimisez votre pipeline de vision par ordinateur.',
+    correctorDesc: 'Refactorisez, corrigez et optimisez votre pipeline avec l\'Intelligence Gemini.',
     pasteCode: 'Collez le code Python...',
     analyzeBtn: 'Optimiser le Code',
     analyzing: 'Optimisation...',
@@ -143,7 +157,10 @@ export const TRANSLATIONS = {
     transpileBtn: 'Convertir en C++',
     transpiling: 'Conversion...',
     community: 'Communauté',
-    import: 'Importer',
+    import: 'Importer Pipeline',
+    importDesc: 'Collez du code Python pour le convertir en graphe visuel.',
+    importBtn: 'Importer',
+    importing: 'Analyse AST...',
     creatorMode: 'Mode Créateur',
     createChallenge: 'Créer un Défi',
     challengeTitle: 'Titre du Défi',
@@ -166,19 +183,28 @@ export const TRANSLATIONS = {
     asyncMode: 'Mode Asynchrone (Non-bloquant)',
     saveConfig: 'Sauvegarder',
     connectivity: 'Connectivité',
+    genai: 'GenAI / VLM',
     // Optimizer Slider
     optPreference: 'Préférence d\'Optimisation',
     quality: 'Qualité Max (Précision)',
     speed: 'FPS Max (Vitesse)',
     balanced: 'Équilibré (50/50)',
+    // DroidCam
+    droidCamConfig: 'Configuration DroidCam',
+    ipAddress: 'Adresse IP',
+    port: 'Port',
+    droidCamHelp: 'Utilisez l\'app DroidCam sur votre téléphone. Entrez l\'IP/Port affiché.',
+    // ONNX
+    onnxConfig: 'Configuration Modèle ONNX',
+    modelPath: 'Chemin du fichier (.onnx)',
   }
 };
 
 export const MOCK_COMMUNITY_NODES: NodeDefinition[] = [
   {
     id: 'comm_yolo',
-    name: 'YOLOv8 Wrapper',
-    name_fr: 'Wrapper YOLOv8',
+    name: 'YOLOv8 Model',
+    name_fr: 'Modèle YOLOv8',
     type: NodeType.AI,
     description: 'Object detection using YOLOv8n',
     description_fr: 'Détection d\'objets avec YOLOv8n',
@@ -193,6 +219,50 @@ results = model({input})
 {output} = results[0].plot()
 `,
     requiredImports: ['cv2', 'ultralytics'],
+    inputs: 1,
+    outputs: 1
+  },
+  {
+    id: 'comm_classifier',
+    name: 'ImageNet Classifier',
+    name_fr: 'Classifieur ImageNet',
+    type: NodeType.AI,
+    description: 'ResNet50 classification',
+    description_fr: 'Classification ResNet50',
+    category: 'ai',
+    library: 'Community',
+    pythonClass: 'ResNet50',
+    pythonTemplate: `
+# Community Node: ResNet Classifier
+# Assumes standard preprocessing is done or handled inside
+# Logic simplified for demo
+{output} = {input} # Placeholder for actual classification overlay
+cv2.putText({output}, "Class: Golden Retriever (Mock)", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+`,
+    requiredImports: ['cv2', 'tensorflow as tf'],
+    inputs: 1,
+    outputs: 1
+  },
+  {
+    id: 'comm_onnx',
+    name: 'ONNX Loader',
+    name_fr: 'Chargeur ONNX',
+    type: NodeType.AI,
+    description: 'Load generic .onnx model',
+    description_fr: 'Charger modèle .onnx générique',
+    category: 'ai',
+    library: 'Community',
+    pythonClass: 'cv2.dnn.readNetFromONNX',
+    pythonTemplate: `
+# Community Node: ONNX
+# Model Path: {modelPath}
+net = cv2.dnn.readNetFromONNX("{modelPath}")
+blob = cv2.dnn.blobFromImage({input}, 1/255.0, (224, 224), swapRB=True, crop=False)
+net.setInput(blob)
+preds = net.forward()
+{output} = {input}
+`,
+    requiredImports: ['cv2'],
     inputs: 1,
     outputs: 1
   },
@@ -234,8 +304,42 @@ export const AVAILABLE_NODES: NodeDefinition[] = [
     category: 'input',
     library: 'Core',
     pythonClass: 'cv2.VideoCapture',
-    pythonTemplate: `cap = cv2.VideoCapture(0)\nif not cap.isOpened(): raise IOError("Cannot open webcam")\nret, {output} = cap.read()`,
+    pythonTemplate: `
+# Setup
+cap = cv2.VideoCapture(0)
+if not cap.isOpened(): raise IOError("Cannot open webcam")
+# Process
+ret, {output} = cap.read()
+if not ret: break`,
     requiredImports: ['cv2'],
+    inputs: 0,
+    outputs: 1
+  },
+  { 
+    id: 'src_droidcam', 
+    name: 'DroidCam / IP Cam', 
+    name_fr: 'DroidCam / Cam IP',
+    type: NodeType.SOURCE, 
+    description: 'Connect to phone camera via WiFi', 
+    description_fr: 'Connexion caméra téléphone via WiFi',
+    category: 'input',
+    library: 'Core',
+    pythonClass: 'cv2.VideoCapture',
+    // Template splitting: Setup is injected at top, Process in loop.
+    // {ip} and {port} will be replaced by the generator.
+    pythonTemplate: `
+# Setup
+droidcam_url = "http://{ip}:{port}/video"
+cap = cv2.VideoCapture(droidcam_url)
+if not cap.isOpened(): print(f"Warning: Could not connect to DroidCam at {droidcam_url}")
+# Process
+ret, {output} = cap.read()
+if not ret: 
+    print("Failed to grab frame from DroidCam")
+    # Placeholder to prevent crash
+    {output} = np.zeros((480, 640, 3), dtype=np.uint8) 
+`,
+    requiredImports: ['cv2', 'numpy as np'],
     inputs: 0,
     outputs: 1
   },
@@ -249,7 +353,12 @@ export const AVAILABLE_NODES: NodeDefinition[] = [
     category: 'input', 
     library: 'Core',
     pythonClass: 'cv2.VideoCapture',
-    pythonTemplate: `cap = cv2.VideoCapture("path/to/video.mp4")\nret, {output} = cap.read()`,
+    pythonTemplate: `
+# Setup
+cap = cv2.VideoCapture("path/to/video.mp4")
+# Process
+ret, {output} = cap.read()
+if not ret: break`,
     requiredImports: ['cv2'],
     inputs: 0,
     outputs: 1
@@ -269,6 +378,29 @@ export const AVAILABLE_NODES: NodeDefinition[] = [
     inputs: 1,
     outputs: 0
   },
+  {
+    id: 'util_optimizer',
+    name: 'Vision Optimizer',
+    name_fr: 'Optimiseur Vision',
+    type: NodeType.UTILITY,
+    description: 'Module d\'optimisation des performances (FPS vs Qualité).',
+    description_fr: 'Module d\'optimisation des performances (FPS vs Qualité).',
+    category: 'utility',
+    library: 'Core',
+    pythonClass: 'Optimizer',
+    pythonTemplate: `
+# Vision Optimizer Node
+# optimization_slider_value = 50 (Example)
+if frame_count % 2 == 0: # Logic dependent on slider value
+    {output} = {input}
+else:
+    # Skip processing for FPS gain
+    continue
+`,
+    requiredImports: ['time'],
+    inputs: 1,
+    outputs: 1
+  },
 
   // --- CONNECTIVITY ---
   {
@@ -287,14 +419,60 @@ export const AVAILABLE_NODES: NodeDefinition[] = [
     outputs: 1
   },
 
+  // --- GENAI (VLM & CREATION) ---
+  {
+    id: 'genai_vlm',
+    name: 'VLM Data Extractor',
+    name_fr: 'Extracteur VLM',
+    type: NodeType.AI,
+    description: 'Utilise un VLM (Gemini/GPT-4o) pour extraire des données structurées d\'une image.',
+    description_fr: 'Utilise un VLM (Gemini/GPT-4o) pour extraire des données structurées d\'une image.',
+    category: 'ai',
+    library: 'GenAI',
+    pythonClass: 'GenerativeModel',
+    pythonTemplate: `
+# VLM Data Extractor
+# schema = "Pydantic Schema Object"
+# response = model.generate_content([image, "Extract data based on schema"])
+{output} = {input} # Pass through image for pipeline continuity
+# Data output would be handled separately or logged
+print("VLM Extraction: [Mock Data]")
+`,
+    requiredImports: ['cv2'],
+    inputs: 1,
+    outputs: 1
+  },
+  {
+    id: 'genai_imagen',
+    name: 'Image Generator',
+    name_fr: 'Générateur d\'Image',
+    type: NodeType.AI,
+    description: 'Génère une nouvelle image à partir d\'un prompt textuel (T2I).',
+    description_fr: 'Génère une nouvelle image à partir d\'un prompt textuel (T2I).',
+    category: 'ai',
+    library: 'GenAI',
+    pythonClass: 'Imagen',
+    pythonTemplate: `
+# Image Generator (T2I)
+# prompt = "Text Prompt"
+# {output} = generate_image(prompt)
+# Simulation:
+{output} = cv2.applyColorMap({input}, cv2.COLORMAP_JET)
+cv2.putText({output}, "AI Generated", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+`,
+    requiredImports: ['cv2'],
+    inputs: 1,
+    outputs: 1
+  },
+
   // --- OPENCV ---
   { 
     id: 'cv_blur', 
-    name: 'Gaussian Blur', 
-    name_fr: 'Flou Gaussien',
+    name: 'OpenCV Filter', 
+    name_fr: 'Filtre OpenCV',
     type: NodeType.PROCESS, 
-    description: 'Smooth image / Reduce noise', 
-    description_fr: 'Lisser l\'image / Réduire le bruit',
+    description: 'Applique un filtre classique (ex: Gaussian Blur, Canny Edge).', 
+    description_fr: 'Applique un filtre classique (ex: Gaussian Blur, Canny Edge).',
     category: 'transform', 
     library: 'OpenCV',
     pythonClass: 'cv2.GaussianBlur',

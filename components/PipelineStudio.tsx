@@ -1,9 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { AVAILABLE_NODES, TRANSLATIONS, MOCK_COMMUNITY_NODES } from '../constants';
-import { PipelineNode, PipelineConnection, NodeType, NodeDefinition, Position, Language, OptimizerConfig, Challenge, ApiConfig } from '../types';
-import { Plus, Trash2, Download, X, Zap, Move, FileVideo, Camera, Cpu, Box, Layers, ZoomIn, ZoomOut, RotateCcw, Info, Settings2, CheckCircle, AlertCircle, Play, Map, Globe, DownloadCloud, Eye, Network } from 'lucide-react';
-import { validateChallengeSolution } from '../services/geminiService';
+import { PipelineNode, PipelineConnection, NodeType, NodeDefinition, Position, Language, OptimizerConfig, Challenge, ApiConfig, DroidCamConfig, OnnxConfig } from '../types';
+import { Plus, Trash2, Download, X, Zap, Move, FileVideo, Camera, Cpu, Box, Layers, ZoomIn, ZoomOut, RotateCcw, Info, Settings2, CheckCircle, AlertCircle, Play, Map, Globe, DownloadCloud, Eye, Network, Sparkles, Brain, Gauge, Image as ImageIcon, Wifi, UploadCloud, Loader2 } from 'lucide-react';
+import { validateChallengeSolution, parsePythonToPipeline } from '../services/geminiService';
 
 const GRID_SIZE = 20;
 
@@ -13,6 +13,7 @@ interface PipelineStudioProps {
     activeChallenge?: Challenge | null;
     onExitChallenge?: () => void;
     onImportCommunityNode?: (node: NodeDefinition) => void;
+    onChallengeComplete?: (challengeId: string) => void;
 }
 
 // --- MODAL COMPONENT FOR CONFIG ---
@@ -25,8 +26,8 @@ interface NodeConfigModalProps {
 
 const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, language, onClose, onSave }) => {
     const t = TRANSLATIONS[language];
-    // Default config for API node
-    const [config, setConfig] = useState<ApiConfig>(node.params.apiConfig || {
+    // API Config State
+    const [apiConfig, setApiConfig] = useState<ApiConfig>(node.params.apiConfig || {
         url: 'http://localhost:5000/api',
         method: 'POST',
         headers: [],
@@ -35,13 +36,24 @@ const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, language, onClo
         imageResizeWidth: 640,
         asyncMode: true
     });
+    
+    // DroidCam Config State
+    const [droidCamConfig, setDroidCamConfig] = useState<DroidCamConfig>(node.params.droidCam || {
+        ip: '192.168.1.10',
+        port: '4747'
+    });
+
+    // ONNX Config State
+    const [onnxConfig, setOnnxConfig] = useState<OnnxConfig>(node.params.onnx || {
+        modelPath: 'model.onnx'
+    });
 
     const [newHeaderKey, setNewHeaderKey] = useState('');
     const [newHeaderVal, setNewHeaderVal] = useState('');
 
     const addHeader = () => {
         if (!newHeaderKey || !newHeaderVal) return;
-        setConfig(c => ({
+        setApiConfig(c => ({
             ...c,
             headers: [...c.headers, { id: crypto.randomUUID(), key: newHeaderKey, value: newHeaderVal, isSecret: false }]
         }));
@@ -50,20 +62,29 @@ const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, language, onClo
     };
 
     const removeHeader = (id: string) => {
-        setConfig(c => ({ ...c, headers: c.headers.filter(h => h.id !== id) }));
+        setApiConfig(c => ({ ...c, headers: c.headers.filter(h => h.id !== id) }));
     };
 
     const handleSave = () => {
-        onSave(node.uuid, { apiConfig: config });
+        const params: any = {};
+        if (node.defId === 'net_http') params.apiConfig = apiConfig;
+        if (node.defId === 'src_droidcam') params.droidCam = droidCamConfig;
+        if (node.defId === 'comm_onnx') params.onnx = onnxConfig;
+        onSave(node.uuid, params);
         onClose();
     };
+    
+    const isApiNode = node.defId === 'net_http';
+    const isDroidCamNode = node.defId === 'src_droidcam';
+    const isOnnxNode = node.defId === 'comm_onnx';
 
     return (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-slate-900 rounded-xl w-full max-w-lg border border-slate-700 shadow-2xl p-6 animate-in zoom-in-95">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Network className="w-5 h-5 text-cyan-400" /> {t.apiConfig}
+                        {isApiNode ? <Network className="w-5 h-5 text-cyan-400" /> : <Settings2 className="w-5 h-5 text-cyan-400" />} 
+                        {isApiNode ? t.apiConfig : isDroidCamNode ? t.droidCamConfig : isOnnxNode ? t.onnxConfig : t.settings}
                     </h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-white">
                         <X className="w-5 h-5" />
@@ -71,83 +92,133 @@ const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, language, onClo
                 </div>
 
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                    {/* URL & Method */}
-                    <div className="grid grid-cols-4 gap-4">
-                        <div className="col-span-3">
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.url}</label>
-                            <input 
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
-                                value={config.url}
-                                onChange={(e) => setConfig({...config, url: e.target.value})}
-                            />
+                    {/* DROIDCAM CONFIG */}
+                    {isDroidCamNode && (
+                        <div className="space-y-4">
+                            <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 mb-4">
+                                <div className="flex items-start gap-3">
+                                    <Wifi className="w-5 h-5 text-cyan-400 mt-1" />
+                                    <p className="text-sm text-slate-300">{t.droidCamHelp}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.ipAddress}</label>
+                                <input 
+                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
+                                    value={droidCamConfig.ip}
+                                    onChange={(e) => setDroidCamConfig({...droidCamConfig, ip: e.target.value})}
+                                    placeholder="192.168.x.x"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.port}</label>
+                                <input 
+                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
+                                    value={droidCamConfig.port}
+                                    onChange={(e) => setDroidCamConfig({...droidCamConfig, port: e.target.value})}
+                                    placeholder="4747"
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.method}</label>
-                            <select 
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
-                                value={config.method}
-                                onChange={(e) => setConfig({...config, method: e.target.value as any})}
-                            >
-                                <option>POST</option>
-                                <option>GET</option>
-                                <option>PUT</option>
-                            </select>
+                    )}
+
+                    {/* ONNX CONFIG */}
+                    {isOnnxNode && (
+                        <div className="space-y-4">
+                             <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.modelPath}</label>
+                                <input 
+                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
+                                    value={onnxConfig.modelPath}
+                                    onChange={(e) => setOnnxConfig({...onnxConfig, modelPath: e.target.value})}
+                                    placeholder="path/to/model.onnx"
+                                />
+                                <p className="text-[10px] text-slate-500 mt-1">Ensure the model file exists in your project directory.</p>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Headers */}
-                    <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                         <label className="block text-xs font-bold text-slate-500 uppercase mb-2">{t.headers}</label>
-                         <div className="space-y-2 mb-3">
-                             {config.headers.map(h => (
-                                 <div key={h.id} className="flex items-center gap-2 text-sm">
-                                     <span className="font-mono text-cyan-400 bg-slate-900 px-2 py-1 rounded border border-slate-700">{h.key}</span>
-                                     <span className="text-slate-400">=</span>
-                                     <span className="font-mono text-slate-300 truncate max-w-[120px]">{h.isSecret ? '••••••' : h.value}</span>
-                                     <button onClick={() => removeHeader(h.id)} className="ml-auto text-red-400 hover:text-red-300"><X className="w-3 h-3"/></button>
-                                 </div>
-                             ))}
-                             {config.headers.length === 0 && <span className="text-xs text-slate-500 italic">No headers configured.</span>}
-                         </div>
-                         <div className="flex gap-2">
-                             <input placeholder={t.key} className="flex-1 bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white" value={newHeaderKey} onChange={e => setNewHeaderKey(e.target.value)} />
-                             <input placeholder={t.value} type="password" className="flex-1 bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white" value={newHeaderVal} onChange={e => setNewHeaderVal(e.target.value)} />
-                             <button onClick={addHeader} className="bg-cyan-600 text-white px-2 rounded hover:bg-cyan-500 text-xs font-bold">{t.addHeader}</button>
-                         </div>
-                    </div>
-
-                    {/* Options */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <label className="flex items-center gap-3 p-3 bg-slate-800/30 rounded border border-slate-800 cursor-pointer hover:border-cyan-500/50">
-                            <input 
-                                type="checkbox" 
-                                checked={config.sendImage} 
-                                onChange={(e) => setConfig({...config, sendImage: e.target.checked})}
-                                className="w-4 h-4 rounded border-slate-600 text-cyan-600 focus:ring-cyan-500 bg-slate-900" 
-                            />
-                            <span className="text-sm font-medium text-slate-300">{t.sendImage}</span>
-                        </label>
-                         <label className="flex items-center gap-3 p-3 bg-slate-800/30 rounded border border-slate-800 cursor-pointer hover:border-cyan-500/50">
-                            <input 
-                                type="checkbox" 
-                                checked={config.asyncMode} 
-                                onChange={(e) => setConfig({...config, asyncMode: e.target.checked})}
-                                className="w-4 h-4 rounded border-slate-600 text-cyan-600 focus:ring-cyan-500 bg-slate-900" 
-                            />
-                            <span className="text-sm font-medium text-slate-300">{t.asyncMode}</span>
-                        </label>
-                    </div>
-
-                    {config.sendImage && (
-                        <div>
-                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.resize}</label>
-                             <input 
-                                type="number"
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
-                                value={config.imageResizeWidth}
-                                onChange={(e) => setConfig({...config, imageResizeWidth: parseInt(e.target.value)})}
-                            />
+                    {/* API CONFIG */}
+                    {isApiNode && (
+                        <>
+                        <div className="grid grid-cols-4 gap-4">
+                            <div className="col-span-3">
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.url}</label>
+                                <input 
+                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
+                                    value={apiConfig.url}
+                                    onChange={(e) => setApiConfig({...apiConfig, url: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.method}</label>
+                                <select 
+                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
+                                    value={apiConfig.method}
+                                    onChange={(e) => setApiConfig({...apiConfig, method: e.target.value as any})}
+                                >
+                                    <option>POST</option>
+                                    <option>GET</option>
+                                    <option>PUT</option>
+                                </select>
+                            </div>
                         </div>
+
+                        {/* Headers */}
+                        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+                             <label className="block text-xs font-bold text-slate-500 uppercase mb-2">{t.headers}</label>
+                             <div className="space-y-2 mb-3">
+                                 {apiConfig.headers.map(h => (
+                                     <div key={h.id} className="flex items-center gap-2 text-sm">
+                                         <span className="font-mono text-cyan-400 bg-slate-900 px-2 py-1 rounded border border-slate-700">{h.key}</span>
+                                         <span className="text-slate-400">=</span>
+                                         <span className="font-mono text-slate-300 truncate max-w-[120px]">{h.isSecret ? '••••••' : h.value}</span>
+                                         <button onClick={() => removeHeader(h.id)} className="ml-auto text-red-400 hover:text-red-300"><X className="w-3 h-3"/></button>
+                                     </div>
+                                 ))}
+                                 {apiConfig.headers.length === 0 && <span className="text-xs text-slate-500 italic">No headers configured.</span>}
+                             </div>
+                             <div className="flex gap-2">
+                                 <input placeholder={t.key} className="flex-1 bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white" value={newHeaderKey} onChange={e => setNewHeaderKey(e.target.value)} />
+                                 <input placeholder={t.value} type="password" className="flex-1 bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white" value={newHeaderVal} onChange={e => setNewHeaderVal(e.target.value)} />
+                                 <button onClick={addHeader} className="bg-cyan-600 text-white px-2 rounded hover:bg-cyan-500 text-xs font-bold">{t.addHeader}</button>
+                             </div>
+                        </div>
+
+                        {/* Options */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <label className="flex items-center gap-3 p-3 bg-slate-800/30 rounded border border-slate-800 cursor-pointer hover:border-cyan-500/50">
+                                <input 
+                                    type="checkbox" 
+                                    checked={apiConfig.sendImage} 
+                                    onChange={(e) => setApiConfig({...apiConfig, sendImage: e.target.checked})}
+                                    className="w-4 h-4 rounded border-slate-600 text-cyan-600 focus:ring-cyan-500 bg-slate-900" 
+                                />
+                                <span className="text-sm font-medium text-slate-300">{t.sendImage}</span>
+                            </label>
+                             <label className="flex items-center gap-3 p-3 bg-slate-800/30 rounded border border-slate-800 cursor-pointer hover:border-cyan-500/50">
+                                <input 
+                                    type="checkbox" 
+                                    checked={apiConfig.asyncMode} 
+                                    onChange={(e) => setApiConfig({...apiConfig, asyncMode: e.target.checked})}
+                                    className="w-4 h-4 rounded border-slate-600 text-cyan-600 focus:ring-cyan-500 bg-slate-900" 
+                                />
+                                <span className="text-sm font-medium text-slate-300">{t.asyncMode}</span>
+                            </label>
+                        </div>
+
+                        {apiConfig.sendImage && (
+                            <div>
+                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.resize}</label>
+                                 <input 
+                                    type="number"
+                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyan-500 outline-none"
+                                    value={apiConfig.imageResizeWidth}
+                                    onChange={(e) => setApiConfig({...apiConfig, imageResizeWidth: parseInt(e.target.value)})}
+                                />
+                            </div>
+                        )}
+                        </>
                     )}
                 </div>
 
@@ -161,7 +232,7 @@ const NodeConfigModal: React.FC<NodeConfigModalProps> = ({ node, language, onClo
 };
 
 
-const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, activeChallenge, onExitChallenge, onImportCommunityNode }) => {
+const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, activeChallenge, onExitChallenge, onImportCommunityNode, onChallengeComplete }) => {
   const [nodes, setNodes] = useState<PipelineNode[]>([]);
   const [connections, setConnections] = useState<PipelineConnection[]>([]);
   const [selectedLibrary, setSelectedLibrary] = useState<string>('Core');
@@ -170,6 +241,11 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   
   // Config Modal State
   const [configNodeId, setConfigNodeId] = useState<string | null>(null);
+
+  // Import Modal State
+  const [showImport, setShowImport] = useState(false);
+  const [importCode, setImportCode] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
 
   // Viewport State
   const [zoom, setZoom] = useState(1);
@@ -214,7 +290,12 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-      // Allow panning if clicking on background (not a node/connection which stopPropagation)
+      // SPECIFICATION CHECK: "L'événement onMouseDown se produit sur l'élément Canvas"
+      // PRIORITE: This handles panning ONLY if target is canvas.
+      
+      // Enforce Left Click Only (button 0)
+      if (e.button !== 0) return;
+
       if (e.target === e.currentTarget) {
           setIsPanning(true);
           setPanStart({ x: e.clientX, y: e.clientY });
@@ -252,7 +333,13 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   // --- DRAG AND DROP ---
 
   const handleMouseDown = (e: React.MouseEvent, uuid: string) => {
+    // SPECIFICATION CHECK: "L'élément Node doit appeler event.stopPropagation()"
+    // PRIORITE: This prevents the canvas panning from triggering.
     e.stopPropagation();
+
+    // Enforce Left Click Only
+    if (e.button !== 0) return;
+
     const node = nodes.find(n => n.uuid === uuid);
     if (node) {
         setDraggingNode(uuid);
@@ -274,7 +361,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         
-        // Panning logic
+        // Panning logic (Canvas Action)
         if (isPanning) {
             const dx = e.clientX - panStart.x;
             const dy = e.clientY - panStart.y;
@@ -288,6 +375,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
         
         setMousePos({ x, y });
 
+        // Dragging Logic (Node Action)
         if (draggingNode) {
             setNodes(nodes.map(n => {
                 if (n.uuid === draggingNode) {
@@ -300,6 +388,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   };
 
   const handleMouseUp = () => {
+    // SPECIFICATION CHECK: "Les états isDragging et isPanning sont réinitialisés à false"
     setDraggingNode(null);
     setLinkingSourceId(null);
     setIsPanning(false);
@@ -309,11 +398,13 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
 
   const startConnection = (e: React.MouseEvent, nodeId: string) => {
     e.stopPropagation();
+    if (e.button !== 0) return;
     setLinkingSourceId(nodeId);
   };
 
   const completeConnection = (e: React.MouseEvent, targetNodeId: string) => {
     e.stopPropagation();
+    if (e.button !== 0) return;
     if (linkingSourceId && linkingSourceId !== targetNodeId) {
         const exists = connections.some(c => c.sourceNodeId === linkingSourceId && c.targetNodeId === targetNodeId);
         if (!exists) {
@@ -395,12 +486,24 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
         nextConnections.forEach(c => queue.push(c.targetNodeId));
     }
 
+    // SETUP GENERATION (Pre-Loop)
     executionOrder.forEach(uuid => {
         const node = nodes.find(n => n.uuid === uuid)!;
         const def = getNodeDef(node.defId)!;
-        if (def.category === 'ai' && def.pythonTemplate.includes("# Setup")) {
-             const parts = def.pythonTemplate.split("# Process");
-             code += parts[0] + "\n";
+        
+        // Handle Setup blocks for AI Nodes and Source Nodes
+        if ((def.category === 'ai' || def.type === NodeType.SOURCE) && def.pythonTemplate.includes("# Setup")) {
+             let parts = def.pythonTemplate.split("# Process");
+             let setupCode = parts[0];
+             
+             // Inject params for DroidCam
+             if (def.id === 'src_droidcam') {
+                 const ip = node.params.droidCam?.ip || '192.168.1.10';
+                 const port = node.params.droidCam?.port || '4747';
+                 setupCode = setupCode.replace('{ip}', ip).replace('{port}', port);
+             }
+
+             code += setupCode + "\n";
         }
     });
 
@@ -458,9 +561,15 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
 
         let nodeCode = def.pythonTemplate;
         
-        if (def.category === 'ai') {
-             const parts = nodeCode.split("# Process");
-             if (parts.length > 1) nodeCode = parts[1];
+        // SPECIAL HANDLING FOR ONNX
+        if (def.id === 'comm_onnx') {
+            const modelPath = node.params.onnx?.modelPath || "model.onnx";
+            nodeCode = nodeCode.split('{modelPath}').join(modelPath);
+        }
+
+        // Split Template if it has Setup/Process parts
+        if (nodeCode.includes("# Process")) {
+             nodeCode = nodeCode.split("# Process")[1];
         }
         
         nodeCode = nodeCode.split('{input}').join(inputVar);
@@ -472,7 +581,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     });
 
     code += `\n    if cv2.waitKey(1) & 0xFF == ord('q'):\n        break\n`;
-    if (mainSource.defId === 'src_webcam' || mainSource.defId === 'src_file') {
+    if (mainSource.defId === 'src_webcam' || mainSource.defId === 'src_file' || mainSource.defId === 'src_droidcam') {
         code += `cap.release()\n`;
     }
     code += `cv2.destroyAllWindows()\n`;
@@ -488,6 +597,24 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
       const result = await validateChallengeSolution(activeChallenge, nodes, connections, allNodes);
       setValidationResult(result);
       setIsValidating(false);
+      
+      if (result.success && onChallengeComplete) {
+          onChallengeComplete(activeChallenge.id);
+      }
+  };
+
+  const handleImport = async () => {
+      if (!importCode.trim()) return;
+      setIsImporting(true);
+      const result = await parsePythonToPipeline(importCode);
+      if (result.nodes.length > 0) {
+          setNodes(result.nodes);
+          setConnections(result.connections);
+          setShowImport(false);
+      } else {
+          alert("Failed to parse code. Ensure it follows a standard OpenCV structure.");
+      }
+      setIsImporting(false);
   };
 
   // --- RENDER HELPERS ---
@@ -500,6 +627,11 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
       if (lib === 'Custom') return <Box className="w-5 h-5" />;
       if (lib === 'Community') return <Globe className="w-5 h-5" />;
       if (lib === 'Connectivity') return <Network className="w-5 h-5" />;
+      if (lib === 'GenAI') {
+          if (type === NodeType.AI) return <Brain className="w-5 h-5" />;
+          return <Sparkles className="w-5 h-5" />;
+      }
+      if (lib === 'Core' && type === NodeType.UTILITY) return <Gauge className="w-5 h-5" />;
       return <FileVideo className="w-5 h-5" />;
   };
 
@@ -510,11 +642,12 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     if (lib === 'Custom') return 'border-pink-500/50 bg-slate-900';
     if (lib === 'Community') return 'border-blue-500/50 bg-slate-900';
     if (lib === 'Connectivity') return 'border-indigo-500/50 bg-slate-900';
+    if (lib === 'GenAI') return 'border-amber-500/50 bg-slate-900';
     return 'border-cyan-500/50 bg-slate-900';
   };
 
   // Filter libraries for Challenge Mode (No Custom/Community in Challenge)
-  const libraries = activeChallenge ? ['Core', 'OpenCV', 'MediaPipe'] : ['Core', 'OpenCV', 'MediaPipe', 'Custom', 'Community', 'Connectivity'];
+  const libraries = activeChallenge ? ['Core', 'OpenCV', 'MediaPipe'] : ['Core', 'OpenCV', 'MediaPipe', 'Custom', 'Community', 'Connectivity', 'GenAI'];
 
   const getChallengeTitle = (c: Challenge) => (language === 'fr' && c.title_fr ? c.title_fr : c.title);
   const getChallengeDesc = (c: Challenge) => (language === 'fr' && c.description_fr ? c.description_fr : c.description);
@@ -559,7 +692,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
                     onClick={() => setSelectedLibrary(lib)}
                     className={`flex-1 px-1 py-2 text-[9px] uppercase font-bold rounded-md transition-all ${selectedLibrary === lib ? 'bg-cyan-600 text-white shadow-lg' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
                  >
-                     {lib}
+                     {lib === 'GenAI' ? 'GenAI' : lib}
                  </button>
              ))}
         </div>
@@ -577,6 +710,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
                   node.library === 'Custom' ? 'bg-pink-500/20 text-pink-400' :
                   node.library === 'Community' ? 'bg-blue-500/20 text-blue-400' :
                   node.library === 'Connectivity' ? 'bg-indigo-500/20 text-indigo-400' :
+                  node.library === 'GenAI' ? 'bg-amber-500/20 text-amber-400' :
                   'bg-cyan-500/20 text-cyan-400'
               }`}>
                  {getIcon(node.type, node.library)}
@@ -700,6 +834,8 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
             {nodes.map(node => {
                 const def = getNodeDef(node.defId);
                 if (!def) return null;
+                const isConfigurable = def.id === 'net_http' || def.id === 'src_droidcam' || def.id === 'comm_onnx';
+
                 return (
                     <div
                         key={node.uuid}
@@ -719,13 +855,15 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
                                 </div>
                             </div>
                             
-                            {/* SETTINGS BUTTON FOR CONNECTIVITY NODES OR OTHERS */}
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); setConfigNodeId(node.uuid); }}
-                                className="text-slate-500 hover:text-cyan-400 p-1 hover:bg-slate-800 rounded"
-                            >
-                                <Settings2 className="w-3 h-3" />
-                            </button>
+                            {/* SETTINGS BUTTON */}
+                            {isConfigurable && (
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); setConfigNodeId(node.uuid); }}
+                                    className="text-slate-500 hover:text-cyan-400 p-1 hover:bg-slate-800 rounded"
+                                >
+                                    <Settings2 className="w-3 h-3" />
+                                </button>
+                            )}
 
                             <button 
                                 onClick={(e) => { e.stopPropagation(); removeNode(node.uuid); }}
@@ -776,12 +914,55 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
              )}
 
              <button 
+                onClick={() => setShowImport(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg shadow-lg font-medium transition-all border border-slate-700"
+             >
+                <UploadCloud className="w-4 h-4 text-cyan-400" /> {t.importBtn}
+             </button>
+
+             <button 
                 onClick={generatePython}
                 className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg shadow-lg shadow-cyan-500/20 font-medium transition-all"
              >
                 <Download className="w-4 h-4" /> {t.export}
              </button>
         </div>
+
+        {/* Import Modal */}
+        {showImport && (
+             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                 <div className="bg-slate-900 rounded-2xl w-full max-w-2xl border border-slate-700 shadow-2xl p-6 animate-in zoom-in-95">
+                     <div className="flex justify-between items-center mb-4">
+                         <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                             <UploadCloud className="w-6 h-6 text-purple-400" /> {t.import}
+                         </h3>
+                         <button onClick={() => setShowImport(false)} className="text-slate-400 hover:text-white">
+                             <X className="w-5 h-5" />
+                         </button>
+                     </div>
+                     <p className="text-sm text-slate-400 mb-4">{t.importDesc}</p>
+                     
+                     <textarea 
+                         value={importCode}
+                         onChange={(e) => setImportCode(e.target.value)}
+                         className="w-full h-48 bg-[#0d1117] text-slate-300 font-mono text-xs p-4 rounded-lg border border-slate-700 focus:outline-none focus:border-purple-500 resize-none mb-4"
+                         placeholder="import cv2..."
+                     />
+
+                     <div className="flex justify-end gap-3">
+                         <button onClick={() => setShowImport(false)} className="px-4 py-2 text-sm text-slate-400 hover:text-white">Cancel</button>
+                         <button 
+                             onClick={handleImport}
+                             disabled={isImporting || !importCode}
+                             className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold shadow-lg flex items-center gap-2 disabled:opacity-50"
+                         >
+                             {isImporting ? <Loader2 className="w-4 h-4 animate-spin"/> : <UploadCloud className="w-4 h-4" />}
+                             {isImporting ? t.importing : t.importBtn}
+                         </button>
+                     </div>
+                 </div>
+             </div>
+        )}
 
         {/* Validation Modal */}
         {validationResult && (
