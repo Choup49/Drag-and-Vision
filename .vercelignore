@@ -1,5 +1,5 @@
 
-# Ignore Python files to prevent Vercel from misidentifying as a Flask app
+# Empêcher la détection de framework Flask
 pyproject.toml
 requirements.txt
 setup.py
@@ -7,4 +7,3 @@ Pipfile
 Pipfile.lock
 .venv
 venv
-*.py

@@ -12,6 +12,6 @@
     "@google/genai": "^1.30.0"
   },
   "scripts": {
-    "build": "mkdir -p dist && cp -rv . dist || true"
+    "build": "echo 'Deploying static files...'"
   }
 }
