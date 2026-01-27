@@ -12,6 +12,6 @@
     "@google/genai": "^1.30.0"
   },
   "scripts": {
-    "build": "echo 'Static Site Build - No compilation needed' && exit 0"
+    "build": "mkdir -p dist && cp -rv . dist || true"
   }
 }
