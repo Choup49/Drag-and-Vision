@@ -17,8 +17,8 @@ export interface NodeDefinition {
   type: NodeType;
   description: string;
   description_fr?: string;
-  category: 'input' | 'transform' | 'ai' | 'utility' | 'output' | 'custom';
-  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom' | 'Community' | 'Connectivity' | 'GenAI';
+  category: 'input' | 'transform' | 'ai' | 'utility' | 'output' | 'custom' | 'logic';
+  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom' | 'Community' | 'Connectivity' | 'GenAI' | 'Logic';
   pythonClass: string;
   pythonTemplate: string;
   requiredImports?: string[];
@@ -37,7 +37,7 @@ export interface ApiConfig {
   headers: { id: string; key: string; value: string; isSecret: boolean }[];
   timeout: number;
   sendImage: boolean;
-  imageResizeWidth?: number; // 0 for no resize
+  imageResizeWidth?: number;
   asyncMode: boolean;
 }
 
@@ -50,11 +50,29 @@ export interface OnnxConfig {
   modelPath: string;
 }
 
+export interface LogicConfig {
+  inputKey?: string;
+  inputKeyA?: string;
+  inputKeyB?: string;
+  index?: number;
+  operation?: 'add' | 'sub' | 'mul' | 'div' | 'dist';
+  comparator?: '>' | '<' | '==' | '!=';
+  threshold?: number;
+  outputKey: string;
+  triggerKey?: string;
+}
+
 export interface PipelineNode {
   uuid: string;
   defId: string;
   position: Position;
-  params: Record<string, any>; // Stores ApiConfig, DroidCamConfig, OnnxConfig, etc.
+  params: {
+    apiConfig?: ApiConfig;
+    droidCam?: DroidCamConfig;
+    onnx?: OnnxConfig;
+    logic?: LogicConfig;
+    [key: string]: any;
+  };
 }
 
 export interface PipelineConnection {
@@ -75,14 +93,13 @@ export interface Challenge {
   objectives_fr?: string[];
   locked: boolean;
   isUserCreated?: boolean;
-  // New fields for progress tracking
   isCompleted?: boolean;
   completionDate?: string | null;
 }
 
 export interface OptimizerConfig {
-  resolutionScale: number; // 0.1 to 1.0
-  frameSkip: number; // 0 to 10
+  resolutionScale: number;
+  frameSkip: number;
   useThreading: boolean;
   enableCuda: boolean;
 }

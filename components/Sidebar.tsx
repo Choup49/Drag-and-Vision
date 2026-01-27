@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewState, Language } from '../types';
-import { GitMerge, Trophy, Code, Settings, Video, Languages, Stethoscope } from 'lucide-react';
+import { GitMerge, Trophy, Code, Settings, Video, Languages, Stethoscope, Maximize, Minimize } from 'lucide-react';
 import { TRANSLATIONS } from '../constants';
 
 interface SidebarProps {
@@ -13,6 +13,25 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, language, onToggleLanguage }) => {
   const t = TRANSLATIONS[language];
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   const menuItems: { id: ViewState; label: string; icon: React.ElementType }[] = [
     { id: 'STUDIO', label: t.studio, icon: GitMerge },
@@ -51,6 +70,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, language, 
       </nav>
 
       <div className="p-4 border-t border-slate-800 space-y-2">
+        <button 
+          onClick={toggleFullscreen}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+        >
+          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+          <span className="font-medium">{isFullscreen ? t.exitFullscreen : t.fullscreen}</span>
+        </button>
         <button 
           onClick={onToggleLanguage}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
