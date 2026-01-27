@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag-and-Vision | AI Image Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .drag-over { border-color: #4f46e5; background-color: #f5f3ff; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-slate-900">Drag-and-Vision</h1>
+            <p class="text-slate-500 mt-2">Déposez une image et laissez Gemini l'analyser</p>
+        </header>
+
+        <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center transition-all cursor-pointer hover:border-indigo-400">
+            <div id="preview-container" class="hidden mb-4">
+                <img id="image-preview" src="" class="max-h-64 mx-auto rounded-lg shadow-md">
+            </div>
+            <div id="prompt-container" class="mt-4">
+                <input type="text" id="prompt-input" placeholder="Que voulez-vous savoir ? (Optionnel)" 
+                    class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none mb-4">
+            </div>
+            <p class="text-slate-400" id="drop-text">Cliquez ou glissez-déposez une image ici</p>
+            <input type="file" id="file-input" class="hidden" accept="image/*">
+            <button id="analyze-btn" class="hidden mt-4 bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors w-full">
+                Analyser l'image
+            </button>
+        </div>
+
+        <div id="result-container" class="hidden mt-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <h3 class="font-bold text-slate-900 mb-2">Analyse Gemini :</h3>
+            <div id="result-text" class="text-slate-700 whitespace-pre-wrap text-sm leading-relaxed"></div>
+        </div>
+
+        <div id="loader" class="hidden mt-4 text-center">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
+            <p class="text-slate-500 text-sm mt-2">Analyse en cours par l'IA...</p>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const preview = document.getElementById('image-preview');
+        const previewContainer = document.getElementById('preview-container');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const resultContainer = document.getElementById('result-container');
+        const resultText = document.getElementById('result-text');
+        const loader = document.getElementById('loader');
+        const dropText = document.getElementById('drop-text');
+
+        let selectedFile = null;
+
+        dropZone.onclick = () => fileInput.click();
+
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); };
+        dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        };
+
+        fileInput.onchange = (e) => handleFiles(e.target.files);
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                selectedFile = files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                    analyzeBtn.classList.remove('hidden');
+                    dropText.classList.add('hidden');
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        }
+
+        analyzeBtn.onclick = async (e) => {
+            e.stopPropagation();
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+            formData.append('prompt', document.getElementById('prompt-input').value);
+
+            analyzeBtn.classList.add('hidden');
+            loader.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.analysis) {
+                    resultText.textContent = data.analysis;
+                    resultContainer.classList.remove('hidden');
+                } else {
+                    alert('Erreur: ' + (data.error || 'Inconnue'));
+                }
+            } catch (err) {
+                alert('Erreur de connexion au serveur');
+            } finally {
+                loader.classList.add('hidden');
+                analyzeBtn.classList.remove('hidden');
+            }
+        };
+    </script>
+</body>
+</html>

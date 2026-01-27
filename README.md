@@ -1,20 +1,22 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
 
-# Run and deploy your AI Studio app
+---
+title: Drag-and-Vision
+emoji: 👁️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
 
-This contains everything you need to run your app locally.
+# Drag-and-Vision
 
-View your app in AI Studio: https://ai.studio/apps/drive/12KnDziLjEe0cTtnJI_JVcDXoW_aeVeG-
+Application d'analyse d'images interactive utilisant **Google Gemini 1.5 Flash** et déployée via Docker sur Hugging Face Spaces.
 
-## Run Locally
+### Configuration
+N'oubliez pas d'ajouter votre `GOOGLE_API_KEY` dans les **Settings > Variables and Secrets** de votre Hugging Face Space.
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Utilisation locale
+1. `pip install -r requirements.txt`
+2. `export GOOGLE_API_KEY=votre_cle`
+3. `python app.py`
