@@ -10,20 +10,12 @@ export const TRANSLATIONS = {
     settings: 'Settings',
     library: 'Node Library',
     export: 'Export Python',
-    exportFlask: 'Export Flask API',
     zoomIn: 'Zoom In',
     zoomOut: 'Zoom Out',
     reset: 'Reset',
     copy: 'Copy to Clipboard',
     generated: 'Generated Python Script',
-    optimize: 'Optimizer',
-    optimizerSettings: 'Performance Settings',
-    resScale: 'Resolution Scale',
-    frameSkip: 'Frame Skip',
-    threading: 'Multi-threading',
-    cuda: 'CUDA Acceleration (if available)',
-    noNodes: 'No nodes available in',
-    dragStart: 'Drag nodes from the library to start building.',
+    noNodes: 'No nodes available',
     back: 'Back',
     start: 'Start Challenge',
     replay: 'Replay Challenge',
@@ -32,84 +24,55 @@ export const TRANSLATIONS = {
     aiHint: 'AI Hint',
     objectives: 'Objectives',
     workspace: 'Workspace',
-    openWorkspace: 'Open Workspace',
-    genNode: 'AI Node Generator',
-    descNode: 'Describe what you want, and we\'ll code the OpenCV logic for you.',
+    openWorkspace: 'Open Editor',
     nodeName: 'Node Name',
     nodeLogic: 'Description / Logic',
     generateBtn: 'Generate & Add',
     generating: 'Generating...',
-    customLib: 'Create one in the "Create Node" tab!',
-    dashboard: 'Dashboard', 
     verify: 'Verify Solution',
     verifying: 'Verifying...',
     success: 'Challenge Completed!',
     fail: 'Keep Trying',
     filterDiff: 'Difficulty',
-    filterTheme: 'Theme',
     all: 'All',
-    missionBrief: 'Mission Brief',
     correctorTitle: 'Code Optimizer',
-    correctorDesc: 'Refactor, fix, and optimize your Computer Vision pipeline with Gemini Intelligence.',
+    correctorDesc: 'Optimize your Computer Vision pipeline with Gemini Intelligence.',
     pasteCode: 'Paste Python Code...',
     analyzeBtn: 'Optimize Code',
     analyzing: 'Optimizing...',
     fixedCode: 'Optimized Code',
     explanation: 'Optimization Report',
-    cppExport: 'C++ Export',
-    transpileBtn: 'Transpile to C++',
-    transpiling: 'Transpiling...',
-    community: 'Community',
     import: 'Import Pipeline',
-    importDesc: 'Paste Python code to reverse-engineer it into a visual graph.',
     importBtn: 'Import',
-    importing: 'Analyzing AST...',
-    creatorMode: 'Creator Mode',
+    saveConfig: 'Save Configuration',
+    droidCamConfig: 'DroidCam Setup',
+    ipAddress: 'IP Address',
+    port: 'Port',
+    droidCamHelp: 'Connect your phone using DroidCam IP/Port.',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit Fullscreen',
     createChallenge: 'Create Challenge',
-    challengeTitle: 'Challenge Title',
+    creatorMode: 'Challenge Creator',
+    challengeTitle: 'Title',
     challengeDesc: 'Description',
     challengeObjs: 'Objectives (one per line)',
     saveChallenge: 'Save Challenge',
-    manualMode: 'Manual Code',
-    aiMode: 'AI Generator',
-    classTemplate: '# Write your Python class here',
-    apiConfig: 'API Node Configuration',
-    url: 'Endpoint URL',
-    method: 'Method',
-    headers: 'Headers',
-    addHeader: 'Add Header',
-    key: 'Key',
-    value: 'Value',
-    sendImage: 'Send Image (Base64)',
-    resize: 'Resize Width (px)',
-    asyncMode: 'Async Mode (Non-blocking)',
-    saveConfig: 'Save Configuration',
-    connectivity: 'Connectivity',
-    genai: 'GenAI / VLM',
-    optPreference: 'Optimization Preference',
-    quality: 'Max Quality (Accuracy)',
-    speed: 'Max FPS (Speed)',
-    balanced: 'Balanced (50/50)',
-    droidCamConfig: 'DroidCam Configuration',
-    ipAddress: 'IP Address',
-    port: 'Port',
-    droidCamHelp: 'Use the DroidCam app on your phone. Enter the IP/Port shown.',
-    onnxConfig: 'ONNX Model Configuration',
-    modelPath: 'Model File Path (.onnx)',
-    fullscreen: 'Fullscreen',
-    exitFullscreen: 'Exit Fullscreen',
-    logic: 'Logic Nodes',
-    logic_selector: 'Item Selector',
-    logic_math: 'Math Operator',
-    logic_dist: 'Measure Distance',
-    logic_check: 'Logic Check',
-    logic_counter: 'Event Counter',
-    logic_input_key: 'Input Key',
-    logic_output_key: 'Output Key',
-    logic_index: 'Item Index',
-    logic_threshold: 'Threshold',
-    logic_comparator: 'Comparator',
-    logic_op: 'Operation',
+    filterTheme: 'Theme',
+    classTemplate: 'Your logic here',
+    genNode: 'AI Node Generator',
+    manualMode: 'Manual Implementation',
+    descNode: 'Describe what this node should do in plain English.',
+    optimize: 'Optimize',
+    cppExport: 'C++ Export',
+    transpiling: 'Transpiling...',
+    transpileBtn: 'Transpile to C++',
+    optPreference: 'Optimization Goal',
+    speed: 'Max Fluidity (FPS)',
+    quality: 'High Accuracy',
+    balanced: 'Balanced',
+    optDescQuality: 'Prioritizes robust code, error handling, and algorithm accuracy. Slower.',
+    optDescSpeed: 'Prioritizes raw execution speed, frame rate, and low latency. Less safe.',
+    optDescBalanced: 'A good compromise between detection quality and real-time performance.',
   },
   fr: {
     studio: 'Studio Pipeline',
@@ -119,20 +82,12 @@ export const TRANSLATIONS = {
     settings: 'Paramètres',
     library: 'Bibliothèque',
     export: 'Exporter Python',
-    exportFlask: 'Exporter API Flask',
     zoomIn: 'Zoomer',
     zoomOut: 'Dézoomer',
     reset: 'Réinitialiser',
     copy: 'Copier',
     generated: 'Script Python Généré',
-    optimize: 'Optimiseur',
-    optimizerSettings: 'Paramètres de Performance',
-    resScale: 'Échelle de Résolution',
-    frameSkip: 'Saut d\'images',
-    threading: 'Multi-threading',
-    cuda: 'Accélération CUDA (si dispo)',
-    noNodes: 'Aucun node disponible dans',
-    dragStart: 'Glissez des nodes depuis la bibliothèque.',
+    noNodes: 'Aucun node disponible',
     back: 'Retour',
     start: 'Lancer le défi',
     replay: 'Rejouer le défi',
@@ -141,89 +96,60 @@ export const TRANSLATIONS = {
     aiHint: 'Indice IA',
     objectives: 'Objectifs',
     workspace: 'Espace de travail',
-    openWorkspace: 'Ouvrir l\'espace',
-    genNode: 'Générateur de Node IA',
-    descNode: 'Décrivez ce que vous voulez, nous codons la logique OpenCV.',
+    openWorkspace: 'Ouvrir l\'Éditeur',
     nodeName: 'Nom du Node',
-    nodeLogic: 'Description / Logic',
+    nodeLogic: 'Description / Logique',
     generateBtn: 'Générer et Ajouter',
     generating: 'Génération...',
-    customLib: 'Créez-en un dans l\'onglet "Créer un Node" !',
-    dashboard: 'Tableau de bord',
     verify: 'Vérifier la Solution',
     verifying: 'Vérification...',
     success: 'Défi Réussi !',
     fail: 'Essayez encore',
     filterDiff: 'Difficulté',
-    filterTheme: 'Thème',
     all: 'Tous',
-    missionBrief: 'Ordre de Mission',
     correctorTitle: 'Optimiseur de Code',
-    correctorDesc: 'Refactorisez, corrigez et optimisez votre pipeline avec l\'Intelligence Gemini.',
+    correctorDesc: 'Optimisez votre pipeline Vision avec l\'IA Gemini.',
     pasteCode: 'Collez le code Python...',
     analyzeBtn: 'Optimiser le Code',
     analyzing: 'Optimisation...',
     fixedCode: 'Code Optimisé',
     explanation: 'Rapport d\'Optimisation',
-    cppExport: 'Export C++',
-    transpileBtn: 'Convertir en C++',
-    transpiling: 'Conversion...',
-    community: 'Communauté',
     import: 'Importer Pipeline',
-    importDesc: 'Collez du code Python pour le convertir en graphe visuel.',
     importBtn: 'Importer',
-    importing: 'Analyse AST...',
-    creatorMode: 'Mode Créateur',
-    createChallenge: 'Créer un Défi',
-    challengeTitle: 'Titre du Défi',
-    challengeDesc: 'Description',
-    challengeObjs: 'Objectifs (un par ligne)',
-    saveChallenge: 'Sauvegarder le Défi',
-    manualMode: 'Code Manuel',
-    aiMode: 'Générateur IA',
-    classTemplate: '# Écrivez votre classe Python ici',
-    apiConfig: 'Configuration API',
-    url: 'URL Endpoint',
-    method: 'Méthode',
-    headers: 'En-têtes',
-    addHeader: 'Ajouter',
-    key: 'Clé',
-    value: 'Valeur',
-    sendImage: 'Envoyer Image (Base64)',
-    resize: 'Largeur Redim. (px)',
-    asyncMode: 'Mode Asynchrone (Non-bloquant)',
-    saveConfig: 'Sauvegarder',
-    connectivity: 'Connectivité',
-    genai: 'GenAI / VLM',
-    optPreference: 'Préférence d\'Optimisation',
-    quality: 'Qualité Max (Précision)',
-    speed: 'FPS Max (Vitesse)',
-    balanced: 'Équilibré (50/50)',
+    saveConfig: 'Sauvegarder Configuration',
     droidCamConfig: 'Configuration DroidCam',
     ipAddress: 'Adresse IP',
     port: 'Port',
-    droidCamHelp: 'Utilisez l\'app DroidCam sur votre téléphone. Entrez l\'IP/Port affiché.',
-    onnxConfig: 'Configuration Modèle ONNX',
-    modelPath: 'Chemin du fichier (.onnx)',
+    droidCamHelp: 'Connectez votre téléphone via l\'IP/Port de DroidCam.',
     fullscreen: 'Plein Écran',
     exitFullscreen: 'Quitter Plein Écran',
-    logic: 'Nodes Logiques',
-    logic_selector: 'Sélecteur d\'Élément',
-    logic_math: 'Opérateur Math',
-    logic_dist: 'Mesure Distance',
-    logic_check: 'Test Logique',
-    logic_counter: 'Compteur d\'Événements',
-    logic_input_key: 'Clé Entrée',
-    logic_output_key: 'Clé Sortie',
-    logic_index: 'Index Elément',
-    logic_threshold: 'Seuil',
-    logic_comparator: 'Comparateur',
-    logic_op: 'Opération',
+    createChallenge: 'Créer un Défi',
+    creatorMode: 'Créateur de Défis',
+    challengeTitle: 'Titre',
+    challengeDesc: 'Description',
+    challengeObjs: 'Objectifs (un par ligne)',
+    saveChallenge: 'Sauvegarder le Défi',
+    filterTheme: 'Thème',
+    classTemplate: 'Votre logique ici',
+    genNode: 'Générateur de Node IA',
+    manualMode: 'Implémentation Manuelle',
+    descNode: 'Décrivez ce que ce node doit faire.',
+    optimize: 'Optimiser',
+    cppExport: 'Export C++',
+    transpiling: 'Transpilation...',
+    transpileBtn: 'Transpiler en C++',
+    optPreference: 'Objectif d\'Optimisation',
+    speed: 'Fluidité Max (FPS)',
+    quality: 'Haute Précision',
+    balanced: 'Équilibré',
+    optDescQuality: 'Priorise la robustesse, la gestion d\'erreurs et la précision. Plus lent.',
+    optDescSpeed: 'Priorise la vitesse d\'exécution brute, les FPS et la latence. Moins sûr.',
+    optDescBalanced: 'Un bon compromis entre qualité de détection et performance temps réel.',
   }
 };
 
 export const AVAILABLE_NODES: NodeDefinition[] = [
-  // --- SOURCES ---
+  // --- CORE / SOURCES ---
   { 
     id: 'src_webcam', 
     name: 'Webcam Feed', 
@@ -234,12 +160,7 @@ export const AVAILABLE_NODES: NodeDefinition[] = [
     category: 'input',
     library: 'Core',
     pythonClass: 'cv2.VideoCapture',
-    pythonTemplate: `
-# Setup
-cap = cv2.VideoCapture(0)
-# Process
-ret, {output} = cap.read()
-if not ret: break`,
+    pythonTemplate: `# Setup\ncap = cv2.VideoCapture(0)\n# Process\nret, {output} = cap.read()\nif not ret: break`,
     requiredImports: ['cv2'],
     inputs: 0,
     outputs: 1
@@ -254,173 +175,171 @@ if not ret: break`,
     category: 'input',
     library: 'Core',
     pythonClass: 'cv2.VideoCapture',
-    pythonTemplate: `
-# Setup
-cap = cv2.VideoCapture("http://{ip}:{port}/video")
-# Process
-ret, {output} = cap.read()
-if not ret: break`,
+    pythonTemplate: `# Setup\ncap = cv2.VideoCapture("http://{ip}:{port}/video")\n# Process\nret, {output} = cap.read()\nif not ret: break`,
     requiredImports: ['cv2'],
     inputs: 0,
     outputs: 1
   },
 
-  // --- LOGIC PACK ---
+  // --- OPENCV TRANSFORMS ---
   {
-    id: 'logic_selector',
-    name: 'Item Selector',
-    name_fr: 'Sélecteur d\'Élément',
-    type: NodeType.UTILITY,
-    description: 'Extract specific item from a list (e.g. Landmark 8)',
-    description_fr: 'Extraire un élément d\'une liste (ex: Landmark n°8)',
-    category: 'logic',
-    library: 'Logic',
-    pythonClass: 'ItemSelector',
-    pythonTemplate: `
-if '{inputKey}' in pipeline_data and pipeline_data['{inputKey}'] is not None:
-    try:
-        pipeline_data['{outputKey}'] = pipeline_data['{inputKey}'][{index}]
-    except:
-        pass
-{output} = {input}`,
+    id: 'cv_gray',
+    name: 'Grayscale',
+    name_fr: 'Niveau de Gris',
+    type: NodeType.PROCESS,
+    description: 'Convert image to grayscale',
+    description_fr: 'Convertir en niveaux de gris',
+    category: 'transform',
+    library: 'OpenCV',
+    pythonClass: 'cv2.cvtColor',
+    pythonTemplate: `{output} = cv2.cvtColor({input}, cv2.COLOR_BGR2GRAY)`,
+    requiredImports: ['cv2'],
     inputs: 1,
     outputs: 1
   },
   {
-    id: 'logic_dist',
-    name: 'Measure Distance',
-    name_fr: 'Mesure Distance',
-    type: NodeType.UTILITY,
-    description: 'Euclidean distance between two points',
-    description_fr: 'Distance Euclidienne entre deux points',
-    category: 'logic',
-    library: 'Logic',
-    pythonClass: 'MeasureDistance',
-    pythonTemplate: `
-if '{keyA}' in pipeline_data and '{keyB}' in pipeline_data:
-    pa = pipeline_data['{keyA}']
-    pb = pipeline_data['{keyB}']
-    if hasattr(pa, 'x') and hasattr(pb, 'x'): # MediaPipe Object
-        dist = np.linalg.norm(np.array([pa.x, pa.y]) - np.array([pb.x, pb.y]))
-    else: # Generic List/Array
-        dist = np.linalg.norm(np.array(pa[:2]) - np.array(pb[:2]))
-    pipeline_data['{outputKey}'] = dist
-{output} = {input}`,
+    id: 'cv_blur',
+    name: 'Gaussian Blur',
+    name_fr: 'Flou Gaussien',
+    type: NodeType.PROCESS,
+    description: 'Apply soft blur filter',
+    description_fr: 'Appliquer un flou doux',
+    category: 'transform',
+    library: 'OpenCV',
+    pythonClass: 'cv2.GaussianBlur',
+    pythonTemplate: `{output} = cv2.GaussianBlur({input}, (5, 5), 0)`,
+    requiredImports: ['cv2'],
     inputs: 1,
     outputs: 1
   },
   {
-    id: 'logic_math',
-    name: 'Math Operator',
-    name_fr: 'Opérateur Math',
-    type: NodeType.UTILITY,
-    description: 'Basic arithmetic on data packet values',
-    description_fr: 'Arithmétique de base sur les données',
-    category: 'logic',
-    library: 'Logic',
-    pythonClass: 'MathOperator',
-    pythonTemplate: `
-if '{keyA}' in pipeline_data and '{keyB}' in pipeline_data:
-    a, b = pipeline_data['{keyA}'], pipeline_data['{keyB}']
-    if '{op}' == 'add': res = a + b
-    elif '{op}' == 'sub': res = a - b
-    elif '{op}' == 'mul': res = a * b
-    elif '{op}' == 'div': res = a / b if b != 0 else 0
-    pipeline_data['{outputKey}'] = res
-{output} = {input}`,
+    id: 'cv_canny',
+    name: 'Canny Edges',
+    name_fr: 'Contours Canny',
+    type: NodeType.PROCESS,
+    description: 'Detect object boundaries',
+    description_fr: 'Détecter les contours',
+    category: 'transform',
+    library: 'OpenCV',
+    pythonClass: 'cv2.Canny',
+    pythonTemplate: `{output} = cv2.Canny({input}, 100, 200)`,
+    requiredImports: ['cv2'],
     inputs: 1,
     outputs: 1
   },
   {
-    id: 'logic_check',
-    name: 'Logic Check',
-    name_fr: 'Test Logique',
-    type: NodeType.UTILITY,
-    description: 'Compare value against threshold',
-    description_fr: 'Comparer une valeur à un seuil',
-    category: 'logic',
-    library: 'Logic',
-    pythonClass: 'LogicCheck',
-    pythonTemplate: `
-if '{inputKey}' in pipeline_data:
-    val = pipeline_data['{inputKey}']
-    res = False
-    if '{comp}' == '>': res = val > {thresh}
-    elif '{comp}' == '<': res = val < {thresh}
-    elif '{comp}' == '==': res = val == {thresh}
-    elif '{comp}' == '!=': res = val != {thresh}
-    pipeline_data['{outputKey}'] = res
-{output} = {input}`,
+    id: 'cv_flip',
+    name: 'Mirror Flip',
+    name_fr: 'Effet Miroir',
+    type: NodeType.PROCESS,
+    description: 'Flip image horizontally',
+    description_fr: 'Retourner horizontalement',
+    category: 'transform',
+    library: 'OpenCV',
+    pythonClass: 'cv2.flip',
+    pythonTemplate: `{output} = cv2.flip({input}, 1)`,
+    requiredImports: ['cv2'],
     inputs: 1,
     outputs: 1
   },
   {
-    id: 'logic_counter',
-    name: 'Event Counter',
-    name_fr: 'Compteur d\'Événements',
-    type: NodeType.UTILITY,
-    description: 'Count transitions from False to True',
-    description_fr: 'Compte les passages de Faux à Vrai (front montant)',
-    category: 'logic',
-    library: 'Logic',
-    pythonClass: 'EventCounter',
-    pythonTemplate: `
-# Setup_{id}
-counter_{id} = 0
-last_state_{id} = False
-
-# Process
-if '{triggerKey}' in pipeline_data:
-    current = pipeline_data['{triggerKey}']
-    if current and not last_state_{id}:
-        counter_{id} += 1
-    last_state_{id} = current
-    pipeline_data['{outputKey}'] = counter_{id}
-    cv2.putText({output}, f"Count: {counter_{id}}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-{output} = {input}`,
+    id: 'cv_thresh',
+    name: 'Threshold',
+    name_fr: 'Seuillage',
+    type: NodeType.PROCESS,
+    description: 'Binary thresholding (Black/White)',
+    description_fr: 'Seuillage binaire (Noir/Blanc)',
+    category: 'transform',
+    library: 'OpenCV',
+    pythonClass: 'cv2.threshold',
+    pythonTemplate: `_, {output} = cv2.threshold({input}, 127, 255, cv2.THRESH_BINARY)`,
+    requiredImports: ['cv2'],
+    inputs: 1,
+    outputs: 1
+  },
+  {
+    id: 'cv_hsv',
+    name: 'HSV Space',
+    name_fr: 'Espace HSV',
+    type: NodeType.PROCESS,
+    description: 'Convert BGR to HSV',
+    description_fr: 'Convertir BGR vers HSV',
+    category: 'transform',
+    library: 'OpenCV',
+    pythonClass: 'cv2.cvtColor',
+    pythonTemplate: `{output} = cv2.cvtColor({input}, cv2.COLOR_BGR2HSV)`,
+    requiredImports: ['cv2'],
     inputs: 1,
     outputs: 1
   },
 
-  // --- MEDIAPIPE ---
+  // --- MEDIAPIPE AI ---
   {
     id: 'mp_hands',
     name: 'Hand Tracking',
     name_fr: 'Suivi des Mains',
     type: NodeType.AI,
-    description: 'Detect hand landmarks with MediaPipe',
-    description_fr: 'Détecter les mains avec MediaPipe',
+    description: 'MediaPipe Hand Landmark Detection',
+    description_fr: 'Détection des mains avec MediaPipe',
     category: 'ai',
     library: 'MediaPipe',
     pythonClass: 'mp.solutions.hands',
-    pythonTemplate: `
-# Setup
-import mediapipe as mp
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
-mp_draw = mp.solutions.drawing_utils
-
-# Process
-{output} = {input}.copy()
-results = hands.process(cv2.cvtColor({input}, cv2.COLOR_BGR2RGB))
-if results.multi_hand_landmarks:
-    pipeline_data['hand_landmarks'] = results.multi_hand_landmarks[0].landmark
-    for hand_lms in results.multi_hand_landmarks:
-        mp_draw.draw_landmarks({output}, hand_lms, mp_hands.HAND_CONNECTIONS)
-else:
-    pipeline_data['hand_landmarks'] = None`,
+    pythonTemplate: `# Setup\nimport mediapipe as mp\nmp_hands = mp.solutions.hands\nhands = mp_hands.Hands()\nmp_draw = mp.solutions.drawing_utils\n# Process\n{output} = {input}.copy()\nres = hands.process(cv2.cvtColor({input}, cv2.COLOR_BGR2RGB))\nif res.multi_hand_landmarks:\n    for lms in res.multi_hand_landmarks: mp_draw.draw_landmarks({output}, lms, mp_hands.HAND_CONNECTIONS)`,
     requiredImports: ['cv2', 'mediapipe as mp'],
     inputs: 1,
     outputs: 1
   },
-
-  // --- OUTPUTS ---
+  {
+    id: 'mp_face_detection',
+    name: 'Face Detection',
+    name_fr: 'Détection Visage',
+    type: NodeType.AI,
+    description: 'Detect face bounding box',
+    description_fr: 'Détecter le cadre du visage',
+    category: 'ai',
+    library: 'MediaPipe',
+    pythonClass: 'mp.solutions.face_detection',
+    pythonTemplate: `# Setup\nimport mediapipe as mp\nmp_face = mp.solutions.face_detection\nface_det = mp_face.FaceDetection()\nmp_draw = mp.solutions.drawing_utils\n# Process\n{output} = {input}.copy()\nres = face_det.process(cv2.cvtColor({input}, cv2.COLOR_BGR2RGB))\nif res.detections:\n    for det in res.detections: mp_draw.draw_detection({output}, det)`,
+    requiredImports: ['cv2', 'mediapipe as mp'],
+    inputs: 1,
+    outputs: 1
+  },
+  {
+    id: 'mp_pose',
+    name: 'Pose Estimation',
+    name_fr: 'Estimation de Pose',
+    type: NodeType.AI,
+    description: 'Full body tracking',
+    description_fr: 'Suivi corporel complet',
+    category: 'ai',
+    library: 'MediaPipe',
+    pythonClass: 'mp.solutions.pose',
+    pythonTemplate: `# Setup\nimport mediapipe as mp\nmp_pose = mp.solutions.pose\npose = mp_pose.Pose()\nmp_draw = mp.solutions.drawing_utils\n# Process\n{output} = {input}.copy()\nres = pose.process(cv2.cvtColor({input}, cv2.COLOR_BGR2RGB))\nif res.pose_landmarks: mp_draw.draw_landmarks({output}, res.pose_landmarks, mp_pose.POSE_CONNECTIONS)`,
+    requiredImports: ['cv2', 'mediapipe as mp'],
+    inputs: 1,
+    outputs: 1
+  },
+  {
+    id: 'mp_face_mesh',
+    name: 'Face Mesh',
+    name_fr: 'Maillage Facial',
+    type: NodeType.AI,
+    description: 'High fidelity face tracking',
+    description_fr: 'Suivi facial haute précision',
+    category: 'ai',
+    library: 'MediaPipe',
+    pythonClass: 'mp.solutions.face_mesh',
+    pythonTemplate: `# Setup\nimport mediapipe as mp\nmp_mesh = mp.solutions.face_mesh\nface_mesh = mp_mesh.FaceMesh()\nmp_draw = mp.solutions.drawing_utils\n# Process\n{output} = {input}.copy()\nres = face_mesh.process(cv2.cvtColor({input}, cv2.COLOR_BGR2RGB))\nif res.multi_face_landmarks:\n    for lms in res.multi_face_landmarks: mp_draw.draw_landmarks({output}, lms, mp_mesh.FACEMESH_CONTOURS)`,
+    requiredImports: ['cv2', 'mediapipe as mp'],
+    inputs: 1,
+    outputs: 1
+  },
   { 
     id: 'out_screen', 
-    name: 'Display Window', 
-    name_fr: 'Fenêtre Affichage',
+    name: 'Display', 
+    name_fr: 'Affichage',
     type: NodeType.OUTPUT, 
-    description: 'Show result in a window', 
+    description: 'Show result in window', 
     description_fr: 'Afficher dans une fenêtre',
     category: 'output',
     library: 'Core',
@@ -433,40 +352,155 @@ else:
 ];
 
 export const CHALLENGES: Challenge[] = [
+  // --- THEME: BASIC ---
   {
-    id: 'ch_squats',
-    title: 'Squat Counter',
-    title_fr: 'Compteur de Squats',
-    difficulty: 'Medium',
-    theme: 'Tracking',
-    description: 'Use Pose Tracking and Logic nodes to count repetitions of squats.',
-    description_fr: 'Utilisez le suivi de pose et les nodes logiques pour compter les squats.',
-    objectives: ['Detect pose landmarks', 'Measure distance between hip and knee', 'Trigger counter when below threshold'],
-    objectives_fr: ['Détecter la pose', 'Mesurer distance hanche-genou', 'Incrémenter quand on descend'],
+    id: 'ch_basic_easy',
+    title: 'Classic Noir',
+    title_fr: 'Classique Noir',
+    difficulty: 'Easy',
+    theme: 'Basic',
+    description: 'Create a simple black and white live feed using the Grayscale node.',
+    description_fr: 'Créez un flux vidéo noir et blanc simple avec le node Niveau de Gris.',
+    objectives: ['Webcam -> Grayscale -> Display'],
+    objectives_fr: ['Webcam -> Niveau de Gris -> Affichage'],
     locked: false
-  }
-];
-
-export const MOCK_COMMUNITY_NODES: NodeDefinition[] = [
+  },
   {
-    id: 'comm_yolo',
-    name: 'YOLOv8 Model',
-    name_fr: 'Modèle YOLOv8',
-    type: NodeType.AI,
-    description: 'Object detection using YOLOv8n',
-    description_fr: 'Détection d\'objets avec YOLOv8n',
-    category: 'ai',
-    library: 'Community',
-    pythonClass: 'YOLOv8Node',
-    pythonTemplate: `
-# Community Node: YOLOv8
-from ultralytics import YOLO
-model = YOLO('yolov8n.pt')
-results = model({input})
-{output} = results[0].plot()
-`,
-    requiredImports: ['cv2', 'ultralytics'],
-    inputs: 1,
-    outputs: 1
+    id: 'ch_basic_normal',
+    title: 'Neon Outlines',
+    title_fr: 'Contours Néon',
+    difficulty: 'Normal',
+    theme: 'Basic',
+    description: 'Detect edges to create a glowing neon effect on the video feed.',
+    description_fr: 'Détectez les bords pour créer un effet néon sur le flux vidéo.',
+    objectives: ['Webcam -> Canny Edges -> Display'],
+    objectives_fr: ['Webcam -> Contours Canny -> Affichage'],
+    locked: false
+  },
+  {
+    id: 'ch_basic_hard',
+    title: 'Ghost Mode',
+    title_fr: 'Mode Fantôme',
+    difficulty: 'Hard',
+    theme: 'Basic',
+    description: 'Combine blurring and flipping to create a disorienting ghost effect.',
+    description_fr: 'Combinez flou et retournement pour créer un effet fantôme désorientant.',
+    objectives: ['Webcam -> Blur -> Mirror Flip -> Display'],
+    objectives_fr: ['Webcam -> Flou -> Miroir -> Affichage'],
+    locked: false
+  },
+
+  // --- THEME: TRACKING ---
+  {
+    id: 'ch_track_easy',
+    title: 'Face Box',
+    title_fr: 'Boîte Visage',
+    difficulty: 'Easy',
+    theme: 'Tracking',
+    description: 'Use MediaPipe to detect faces and draw a bounding box around them.',
+    description_fr: 'Utilisez MediaPipe pour détecter les visages et dessiner un cadre autour.',
+    objectives: ['Webcam -> Face Detection -> Display'],
+    objectives_fr: ['Webcam -> Détection Visage -> Affichage'],
+    locked: false
+  },
+  {
+    id: 'ch_track_normal',
+    title: 'Hand Skeleton',
+    title_fr: 'Squelette Main',
+    difficulty: 'Normal',
+    theme: 'Tracking',
+    description: 'Track the skeletal landmarks of your hands in real-time.',
+    description_fr: 'Suivez les repères squelettiques de vos mains en temps réel.',
+    objectives: ['Webcam -> Hand Tracking -> Display'],
+    objectives_fr: ['Webcam -> Suivi Mains -> Affichage'],
+    locked: false
+  },
+  {
+    id: 'ch_track_hard',
+    title: 'Full Body Mesh',
+    title_fr: 'Maillage Corporel',
+    difficulty: 'Hard',
+    theme: 'Tracking',
+    description: 'Perform complex full-body pose estimation to map the entire human skeleton.',
+    description_fr: 'Effectuez une estimation de pose complète pour cartographier tout le squelette.',
+    objectives: ['Webcam -> Pose Estimation -> Display'],
+    objectives_fr: ['Webcam -> Estimation Pose -> Affichage'],
+    locked: false
+  },
+
+  // --- THEME: SEGMENTATION ---
+  {
+    id: 'ch_seg_easy',
+    title: 'Binary World',
+    title_fr: 'Monde Binaire',
+    difficulty: 'Easy',
+    theme: 'Segmentation',
+    description: 'Reduce the complex world to black and white pixels using thresholding.',
+    description_fr: 'Réduisez le monde complexe à des pixels noirs et blancs via le seuillage.',
+    objectives: ['Webcam -> Grayscale -> Threshold -> Display'],
+    objectives_fr: ['Webcam -> Gris -> Seuillage -> Affichage'],
+    locked: false
+  },
+  {
+    id: 'ch_seg_normal',
+    title: 'Privacy Filter',
+    title_fr: 'Filtre Privé',
+    difficulty: 'Normal',
+    theme: 'Segmentation',
+    description: 'Apply a heavy blur to the entire image to simulate privacy protection.',
+    description_fr: 'Appliquez un flou important à toute l\'image pour simuler la confidentialité.',
+    objectives: ['Webcam -> Gaussian Blur -> Display'],
+    objectives_fr: ['Webcam -> Flou Gaussien -> Affichage'],
+    locked: false
+  },
+  {
+    id: 'ch_seg_hard',
+    title: 'Color Map',
+    title_fr: 'Carte de Couleur',
+    difficulty: 'Hard',
+    theme: 'Segmentation',
+    description: 'Convert the image to HSV space to visualize color segmentation channels.',
+    description_fr: 'Convertissez l\'image en espace HSV pour visualiser les canaux de couleur.',
+    objectives: ['Webcam -> HSV Space -> Display'],
+    objectives_fr: ['Webcam -> Espace HSV -> Affichage'],
+    locked: false
+  },
+
+  // --- THEME: CREATIVE ---
+  {
+    id: 'ch_create_easy',
+    title: 'Mirror Mirror',
+    title_fr: 'Miroir Miroir',
+    difficulty: 'Easy',
+    theme: 'Creative',
+    description: 'Simple mirror effect to correct the webcam feed orientation.',
+    description_fr: 'Effet miroir simple pour corriger l\'orientation de la webcam.',
+    objectives: ['Webcam -> Mirror Flip -> Display'],
+    objectives_fr: ['Webcam -> Miroir -> Affichage'],
+    locked: false
+  },
+  {
+    id: 'ch_create_normal',
+    title: 'Artistic Blur',
+    title_fr: 'Flou Artistique',
+    difficulty: 'Normal',
+    theme: 'Creative',
+    description: 'Combine blurring with edge detection for a sketch-like effect.',
+    description_fr: 'Combinez flou et détection de contours pour un effet croquis.',
+    objectives: ['Webcam -> Gaussian Blur -> Canny Edges -> Display'],
+    objectives_fr: ['Webcam -> Flou -> Contours Canny -> Affichage'],
+    locked: false
+  },
+  {
+    id: 'ch_create_hard',
+    title: 'Abstract Hands',
+    title_fr: 'Mains Abstraites',
+    difficulty: 'Hard',
+    theme: 'Creative',
+    description: 'Flip the world and track hands in reverse for a mind-bending experience.',
+    description_fr: 'Retournez le monde et suivez les mains à l\'envers pour une expérience troublante.',
+    objectives: ['Webcam -> Mirror Flip -> Hand Tracking -> Display'],
+    objectives_fr: ['Webcam -> Miroir -> Suivi Mains -> Affichage'],
+    locked: false
   }
 ];

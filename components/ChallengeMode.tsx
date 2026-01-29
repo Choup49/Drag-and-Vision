@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { CHALLENGES, TRANSLATIONS } from '../constants';
 import { Challenge, Language } from '../types';
-import { Lock, CheckCircle, ArrowRight, Lightbulb, PlayCircle, Filter, PlusCircle, Save } from 'lucide-react';
+import { Lock, CheckCircle, ArrowRight, Lightbulb, PlayCircle, PlusCircle, Save } from 'lucide-react';
 import { getChallengeHint } from '../services/geminiService';
 
 interface ChallengeModeProps {
@@ -10,7 +10,7 @@ interface ChallengeModeProps {
     onEnterChallengeWorkspace: (challenge: Challenge) => void;
     userChallenges: Challenge[];
     onSaveChallenge: (c: Challenge) => void;
-    allChallengesWithStatus?: Challenge[]; // New prop for rendering static list with status
+    allChallengesWithStatus?: Challenge[]; 
 }
 
 const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChallengeWorkspace, userChallenges, onSaveChallenge, allChallengesWithStatus }) => {
@@ -65,7 +65,6 @@ const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChalleng
     setLoadingHint(false);
   };
 
-  // Use the merged list if provided, otherwise fallback (for safety)
   const challengeList = allChallengesWithStatus || [...CHALLENGES, ...userChallenges];
 
   const filteredChallenges = challengeList.filter(c => {
@@ -95,7 +94,7 @@ const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChalleng
                 <div className="flex items-center gap-3 mb-3">
                   <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide ${
                     activeChallenge.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                    activeChallenge.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                    activeChallenge.difficulty === 'Normal' ? 'bg-yellow-500/20 text-yellow-400' :
                     activeChallenge.difficulty === 'Hard' ? 'bg-red-500/20 text-red-400' :
                     'bg-blue-500/20 text-blue-400'
                   }`}>
@@ -248,7 +247,7 @@ const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChalleng
                         >
                             <option value="All">{t.all}</option>
                             <option value="Easy">Easy</option>
-                            <option value="Medium">Medium</option>
+                            <option value="Normal">Normal</option>
                             <option value="Hard">Hard</option>
                             <option value="Custom">Custom</option>
                         </select>
@@ -281,7 +280,7 @@ const ChallengeMode: React.FC<ChallengeModeProps> = ({ language, onEnterChalleng
                         <div className="flex gap-2">
                             <span className={`px-2 py-1 rounded text-[10px] uppercase font-bold ${
                             challenge.difficulty === 'Easy' ? 'bg-green-900/30 text-green-400' :
-                            challenge.difficulty === 'Medium' ? 'bg-yellow-900/30 text-yellow-400' :
+                            challenge.difficulty === 'Normal' ? 'bg-yellow-900/30 text-yellow-400' :
                             challenge.difficulty === 'Hard' ? 'bg-red-900/30 text-red-400' :
                             'bg-blue-900/30 text-blue-400'
                             }`}>

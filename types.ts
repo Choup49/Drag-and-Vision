@@ -17,8 +17,8 @@ export interface NodeDefinition {
   type: NodeType;
   description: string;
   description_fr?: string;
-  category: 'input' | 'transform' | 'ai' | 'utility' | 'output' | 'custom' | 'logic';
-  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom' | 'Community' | 'Connectivity' | 'GenAI' | 'Logic';
+  category: 'input' | 'transform' | 'ai' | 'utility' | 'output' | 'custom';
+  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom';
   pythonClass: string;
   pythonTemplate: string;
   requiredImports?: string[];
@@ -31,35 +31,9 @@ export interface Position {
   y: number;
 }
 
-export interface ApiConfig {
-  url: string;
-  method: 'GET' | 'POST' | 'PUT';
-  headers: { id: string; key: string; value: string; isSecret: boolean }[];
-  timeout: number;
-  sendImage: boolean;
-  imageResizeWidth?: number;
-  asyncMode: boolean;
-}
-
 export interface DroidCamConfig {
   ip: string;
   port: string;
-}
-
-export interface OnnxConfig {
-  modelPath: string;
-}
-
-export interface LogicConfig {
-  inputKey?: string;
-  inputKeyA?: string;
-  inputKeyB?: string;
-  index?: number;
-  operation?: 'add' | 'sub' | 'mul' | 'div' | 'dist';
-  comparator?: '>' | '<' | '==' | '!=';
-  threshold?: number;
-  outputKey: string;
-  triggerKey?: string;
 }
 
 export interface PipelineNode {
@@ -67,10 +41,7 @@ export interface PipelineNode {
   defId: string;
   position: Position;
   params: {
-    apiConfig?: ApiConfig;
     droidCam?: DroidCamConfig;
-    onnx?: OnnxConfig;
-    logic?: LogicConfig;
     [key: string]: any;
   };
 }
@@ -85,31 +56,25 @@ export interface Challenge {
   id: string;
   title: string;
   title_fr?: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard' | 'Custom';
-  theme: 'Basic' | 'Tracking' | 'Segmentation' | 'Optimization' | 'Creative' | 'Community';
+  difficulty: 'Easy' | 'Normal' | 'Hard' | 'Custom';
+  theme: 'Basic' | 'Tracking' | 'Segmentation' | 'Creative';
   description: string;
   description_fr?: string;
   objectives: string[];
   objectives_fr?: string[];
   locked: boolean;
-  isUserCreated?: boolean;
   isCompleted?: boolean;
-  completionDate?: string | null;
+  isUserCreated?: boolean;
 }
 
-export interface OptimizerConfig {
-  resolutionScale: number;
-  frameSkip: number;
-  useThreading: boolean;
-  enableCuda: boolean;
-}
-
+// Added ValidationResult to fix missing export error
 export interface ValidationResult {
   success: boolean;
   message: string;
   hint?: string;
 }
 
+// Added CppTranspilationResult to fix missing export error
 export interface CppTranspilationResult {
   cppCode: string;
   cmakeCode: string;
