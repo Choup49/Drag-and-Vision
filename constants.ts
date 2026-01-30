@@ -22,7 +22,7 @@ export const TRANSLATIONS = {
     locked: 'Locked',
     consultAI: 'Consult AI',
     aiHint: 'AI Hint',
-    objectives: 'Objectives',
+    objectives: 'Goal',
     workspace: 'Workspace',
     openWorkspace: 'Open Editor',
     nodeName: 'Node Name',
@@ -73,6 +73,10 @@ export const TRANSLATIONS = {
     optDescQuality: 'Prioritizes robust code, error handling, and algorithm accuracy. Slower.',
     optDescSpeed: 'Prioritizes raw execution speed, frame rate, and low latency. Less safe.',
     optDescBalanced: 'A good compromise between detection quality and real-time performance.',
+    validationSuccess: 'Great job! Your pipeline produces the expected result.',
+    validationFail: 'Not quite right. Check the flow and parameters.',
+    retry: 'Retry',
+    finish: 'Finish',
   },
   fr: {
     studio: 'Studio Pipeline',
@@ -94,7 +98,7 @@ export const TRANSLATIONS = {
     locked: 'Verrouillé',
     consultAI: 'Consulter l\'IA',
     aiHint: 'Indice IA',
-    objectives: 'Objectifs',
+    objectives: 'But',
     workspace: 'Espace de travail',
     openWorkspace: 'Ouvrir l\'Éditeur',
     nodeName: 'Nom du Node',
@@ -145,6 +149,10 @@ export const TRANSLATIONS = {
     optDescQuality: 'Priorise la robustesse, la gestion d\'erreurs et la précision. Plus lent.',
     optDescSpeed: 'Priorise la vitesse d\'exécution brute, les FPS et la latence. Moins sûr.',
     optDescBalanced: 'Un bon compromis entre qualité de détection et performance temps réel.',
+    validationSuccess: 'Bravo ! Votre pipeline produit le résultat attendu.',
+    validationFail: 'Pas tout à fait. Vérifiez le flux et les paramètres.',
+    retry: 'Réessayer',
+    finish: 'Terminer',
   }
 };
 
@@ -360,9 +368,9 @@ export const CHALLENGES: Challenge[] = [
     difficulty: 'Easy',
     theme: 'Basic',
     description: 'Create a simple black and white live feed using the Grayscale node.',
-    description_fr: 'Créez un flux vidéo noir et blanc simple avec le node Niveau de Gris.',
-    objectives: ['Webcam -> Grayscale -> Display'],
-    objectives_fr: ['Webcam -> Niveau de Gris -> Affichage'],
+    description_fr: 'Créez un flux vidéo noir et blanc simple.',
+    objectives: ['Display the webcam feed in grayscale (Black & White).'],
+    objectives_fr: ['Afficher le flux webcam en niveaux de gris (Noir & Blanc).'],
     locked: false
   },
   {
@@ -373,8 +381,8 @@ export const CHALLENGES: Challenge[] = [
     theme: 'Basic',
     description: 'Detect edges to create a glowing neon effect on the video feed.',
     description_fr: 'Détectez les bords pour créer un effet néon sur le flux vidéo.',
-    objectives: ['Webcam -> Canny Edges -> Display'],
-    objectives_fr: ['Webcam -> Contours Canny -> Affichage'],
+    objectives: ['Display only the outlines/edges of objects seen by the camera.'],
+    objectives_fr: ['Afficher uniquement les contours/bords des objets vus par la caméra.'],
     locked: false
   },
   {
@@ -385,8 +393,8 @@ export const CHALLENGES: Challenge[] = [
     theme: 'Basic',
     description: 'Combine blurring and flipping to create a disorienting ghost effect.',
     description_fr: 'Combinez flou et retournement pour créer un effet fantôme désorientant.',
-    objectives: ['Webcam -> Blur -> Mirror Flip -> Display'],
-    objectives_fr: ['Webcam -> Flou -> Miroir -> Affichage'],
+    objectives: ['Display a mirror image that is also significantly blurred.'],
+    objectives_fr: ['Afficher une image miroir qui est aussi significativement floue.'],
     locked: false
   },
 
@@ -397,10 +405,10 @@ export const CHALLENGES: Challenge[] = [
     title_fr: 'Boîte Visage',
     difficulty: 'Easy',
     theme: 'Tracking',
-    description: 'Use MediaPipe to detect faces and draw a bounding box around them.',
-    description_fr: 'Utilisez MediaPipe pour détecter les visages et dessiner un cadre autour.',
-    objectives: ['Webcam -> Face Detection -> Display'],
-    objectives_fr: ['Webcam -> Détection Visage -> Affichage'],
+    description: 'Use AI to identify faces.',
+    description_fr: 'Utilisez l\'IA pour identifier les visages.',
+    objectives: ['Draw a bounding box around any detected face in the video feed.'],
+    objectives_fr: ['Dessiner une boîte englobante autour de tout visage détecté dans le flux vidéo.'],
     locked: false
   },
   {
@@ -411,8 +419,8 @@ export const CHALLENGES: Challenge[] = [
     theme: 'Tracking',
     description: 'Track the skeletal landmarks of your hands in real-time.',
     description_fr: 'Suivez les repères squelettiques de vos mains en temps réel.',
-    objectives: ['Webcam -> Hand Tracking -> Display'],
-    objectives_fr: ['Webcam -> Suivi Mains -> Affichage'],
+    objectives: ['Visualize the joints and connections of hands on the screen.'],
+    objectives_fr: ['Visualiser les articulations et connexions des mains à l\'écran.'],
     locked: false
   },
   {
@@ -421,10 +429,10 @@ export const CHALLENGES: Challenge[] = [
     title_fr: 'Maillage Corporel',
     difficulty: 'Hard',
     theme: 'Tracking',
-    description: 'Perform complex full-body pose estimation to map the entire human skeleton.',
-    description_fr: 'Effectuez une estimation de pose complète pour cartographier tout le squelette.',
-    objectives: ['Webcam -> Pose Estimation -> Display'],
-    objectives_fr: ['Webcam -> Estimation Pose -> Affichage'],
+    description: 'Perform complex full-body pose estimation.',
+    description_fr: 'Effectuez une estimation de pose complète.',
+    objectives: ['Map and display the entire human body skeleton overlay.'],
+    objectives_fr: ['Cartographier et afficher la superposition complète du squelette humain.'],
     locked: false
   },
 
@@ -435,10 +443,10 @@ export const CHALLENGES: Challenge[] = [
     title_fr: 'Monde Binaire',
     difficulty: 'Easy',
     theme: 'Segmentation',
-    description: 'Reduce the complex world to black and white pixels using thresholding.',
-    description_fr: 'Réduisez le monde complexe à des pixels noirs et blancs via le seuillage.',
-    objectives: ['Webcam -> Grayscale -> Threshold -> Display'],
-    objectives_fr: ['Webcam -> Gris -> Seuillage -> Affichage'],
+    description: 'Reduce the complex world to pure black and white pixels.',
+    description_fr: 'Réduisez le monde complexe à des pixels purement noirs et blancs.',
+    objectives: ['Create a binary image where pixels are either fully black or fully white (Thresholding).'],
+    objectives_fr: ['Créer une image binaire où les pixels sont soit totalement noirs, soit totalement blancs (Seuillage).'],
     locked: false
   },
   {
@@ -447,10 +455,10 @@ export const CHALLENGES: Challenge[] = [
     title_fr: 'Filtre Privé',
     difficulty: 'Normal',
     theme: 'Segmentation',
-    description: 'Apply a heavy blur to the entire image to simulate privacy protection.',
-    description_fr: 'Appliquez un flou important à toute l\'image pour simuler la confidentialité.',
-    objectives: ['Webcam -> Gaussian Blur -> Display'],
-    objectives_fr: ['Webcam -> Flou Gaussien -> Affichage'],
+    description: 'Obscure the image details for privacy.',
+    description_fr: 'Masquez les détails de l\'image pour la confidentialité.',
+    objectives: ['Render the video feed unrecognizable using heavy blurring.'],
+    objectives_fr: ['Rendre le flux vidéo méconnaissable en utilisant un flou important.'],
     locked: false
   },
   {
@@ -459,10 +467,10 @@ export const CHALLENGES: Challenge[] = [
     title_fr: 'Carte de Couleur',
     difficulty: 'Hard',
     theme: 'Segmentation',
-    description: 'Convert the image to HSV space to visualize color segmentation channels.',
-    description_fr: 'Convertissez l\'image en espace HSV pour visualiser les canaux de couleur.',
-    objectives: ['Webcam -> HSV Space -> Display'],
-    objectives_fr: ['Webcam -> Espace HSV -> Affichage'],
+    description: 'Visualize the image in a different color space.',
+    description_fr: 'Visualisez l\'image dans un espace colorimétrique différent.',
+    objectives: ['Convert and display the video in HSV color space instead of RGB.'],
+    objectives_fr: ['Convertir et afficher la vidéo dans l\'espace couleur HSV au lieu de RGB.'],
     locked: false
   },
 
@@ -473,10 +481,10 @@ export const CHALLENGES: Challenge[] = [
     title_fr: 'Miroir Miroir',
     difficulty: 'Easy',
     theme: 'Creative',
-    description: 'Simple mirror effect to correct the webcam feed orientation.',
-    description_fr: 'Effet miroir simple pour corriger l\'orientation de la webcam.',
-    objectives: ['Webcam -> Mirror Flip -> Display'],
-    objectives_fr: ['Webcam -> Miroir -> Affichage'],
+    description: 'Correct the webcam orientation.',
+    description_fr: 'Corrigez l\'orientation de la webcam.',
+    objectives: ['Flip the video feed horizontally to act like a mirror.'],
+    objectives_fr: ['Retourner le flux vidéo horizontalement pour agir comme un miroir.'],
     locked: false
   },
   {
@@ -485,10 +493,10 @@ export const CHALLENGES: Challenge[] = [
     title_fr: 'Flou Artistique',
     difficulty: 'Normal',
     theme: 'Creative',
-    description: 'Combine blurring with edge detection for a sketch-like effect.',
-    description_fr: 'Combinez flou et détection de contours pour un effet croquis.',
-    objectives: ['Webcam -> Gaussian Blur -> Canny Edges -> Display'],
-    objectives_fr: ['Webcam -> Flou -> Contours Canny -> Affichage'],
+    description: 'Create a sketch-like effect.',
+    description_fr: 'Créez un effet de croquis.',
+    objectives: ['Produce an output that looks like a blurred drawing (Edges + Blur).'],
+    objectives_fr: ['Produire une sortie qui ressemble à un dessin flou (Contours + Flou).'],
     locked: false
   },
   {
@@ -497,10 +505,10 @@ export const CHALLENGES: Challenge[] = [
     title_fr: 'Mains Abstraites',
     difficulty: 'Hard',
     theme: 'Creative',
-    description: 'Flip the world and track hands in reverse for a mind-bending experience.',
-    description_fr: 'Retournez le monde et suivez les mains à l\'envers pour une expérience troublante.',
-    objectives: ['Webcam -> Mirror Flip -> Hand Tracking -> Display'],
-    objectives_fr: ['Webcam -> Miroir -> Suivi Mains -> Affichage'],
+    description: 'A mind-bending experience with reversed controls.',
+    description_fr: 'Une expérience troublante avec des contrôles inversés.',
+    objectives: ['Display hand tracking landmarks on a mirrored video feed.'],
+    objectives_fr: ['Afficher les repères de suivi des mains sur un flux vidéo en miroir.'],
     locked: false
   }
 ];

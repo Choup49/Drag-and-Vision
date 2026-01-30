@@ -4,9 +4,9 @@ import { AVAILABLE_NODES, TRANSLATIONS } from '../constants';
 import { PipelineNode, PipelineConnection, NodeType, NodeDefinition, Position, Language, Challenge, DroidCamConfig } from '../types';
 import { 
     Plus, Trash2, Download, X, Zap, FileVideo, Camera, Cpu, Layers, 
-    ZoomIn, ZoomOut, RotateCcw, Settings2, Eye, UploadCloud, Loader2 
+    ZoomIn, ZoomOut, RotateCcw, Settings2, Eye, UploadCloud, Loader2, PlayCircle, CheckCircle, AlertOctagon 
 } from 'lucide-react';
-import { parsePythonToPipeline } from '../services/geminiService';
+import { parsePythonToPipeline, validateChallengeSolution } from '../services/geminiService';
 
 const GRID_SIZE = 20;
 
@@ -50,7 +50,7 @@ const NodeConfigModal: React.FC<{ node: PipelineNode; language: Language; onClos
     );
 };
 
-const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, activeChallenge }) => {
+const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, activeChallenge, onExitChallenge, onChallengeComplete }) => {
   const [nodes, setNodes] = useState<PipelineNode[]>([]);
   const [connections, setConnections] = useState<PipelineConnection[]>([]);
   const [selectedLibrary, setSelectedLibrary] = useState<string>('Core');
@@ -68,6 +68,11 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   const [mousePos, setMousePos] = useState<Position>({ x: 0, y: 0 });
   const [showCode, setShowCode] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
+  
+  // Verification State
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [validationResult, setValidationResult] = useState<{success: boolean, message: string, hint?: string} | null>(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   const allNodes = [...AVAILABLE_NODES, ...customNodes];
@@ -134,6 +139,17 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     setShowCode(true);
   };
 
+  const handleVerify = async () => {
+      if (!activeChallenge) return;
+      setIsVerifying(true);
+      const result = await validateChallengeSolution(activeChallenge, nodes, connections);
+      setIsVerifying(false);
+      setValidationResult(result);
+      if (result.success && onChallengeComplete) {
+          onChallengeComplete(activeChallenge.id);
+      }
+  };
+
   const getIcon = (defId: string) => {
     const def = allNodes.find(d => d.id === defId);
     if (def?.type === NodeType.SOURCE) return <Camera className="w-5 h-5" />;
@@ -143,10 +159,57 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   };
 
   return (
-    <div className="flex h-full bg-slate-950 overflow-hidden">
+    <div className="flex h-full bg-slate-950 overflow-hidden relative">
+      {/* Verification Modal */}
+      {validationResult && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in">
+              <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl relative">
+                  <button onClick={() => setValidationResult(null)} className="absolute top-4 right-4 text-slate-500 hover:text-white">
+                      <X className="w-6 h-6"/>
+                  </button>
+                  <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6 ${validationResult.success ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                      {validationResult.success ? <CheckCircle className="w-10 h-10 text-green-500" /> : <AlertOctagon className="w-10 h-10 text-red-500" />}
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-2">{validationResult.success ? t.success : t.fail}</h2>
+                  <p className="text-slate-300 mb-6">{validationResult.message}</p>
+                  
+                  {!validationResult.success && validationResult.hint && (
+                      <div className="bg-slate-800/50 p-4 rounded-lg mb-6 text-sm text-yellow-300 border border-yellow-500/30">
+                          <strong>{t.aiHint}:</strong> {validationResult.hint}
+                      </div>
+                  )}
+
+                  <div className="flex gap-4 justify-center">
+                      <button onClick={() => setValidationResult(null)} className="px-6 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 font-bold">
+                          {validationResult.success ? t.finish : t.retry}
+                      </button>
+                      {validationResult.success && onExitChallenge && (
+                          <button onClick={onExitChallenge} className="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 font-bold shadow-lg shadow-green-500/20">
+                              {t.back}
+                          </button>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
+
       {configNodeId && <NodeConfigModal node={nodes.find(n => n.uuid === configNodeId)!} language={language} onClose={() => setConfigNodeId(null)} onSave={(id, p) => setNodes(nodes.map(n => n.uuid === id ? {...n, params: p} : n))} />}
+      
       <div className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-20 shadow-xl">
-        <div className="p-4 border-b border-slate-800"><h2 className="font-bold text-slate-200 flex items-center gap-2"><Layers className="w-4 h-4 text-cyan-400" /> {t.library}</h2></div>
+        <div className="p-4 border-b border-slate-800">
+            {activeChallenge ? (
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <button onClick={onExitChallenge} className="text-slate-500 hover:text-white text-xs font-bold uppercase tracking-wider hover:underline">← {t.back}</button>
+                    </div>
+                    <h2 className="font-bold text-yellow-400 flex items-center gap-2 text-sm line-clamp-1">
+                         {language === 'fr' && activeChallenge.title_fr ? activeChallenge.title_fr : activeChallenge.title}
+                    </h2>
+                </div>
+            ) : (
+                <h2 className="font-bold text-slate-200 flex items-center gap-2"><Layers className="w-4 h-4 text-cyan-400" /> {t.library}</h2>
+            )}
+        </div>
         <div className="flex gap-1 p-2 bg-slate-900/50">
              {['Core', 'OpenCV', 'MediaPipe', 'Custom'].map(lib => <button key={lib} onClick={() => setSelectedLibrary(lib)} className={`flex-1 py-1.5 text-[9px] uppercase font-bold rounded transition-all ${selectedLibrary === lib ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{lib}</button>)}
         </div>
@@ -177,8 +240,21 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
         onMouseDown={(e) => { if (e.target === e.currentTarget) { setIsPanning(true); setPanStart({ x: e.clientX, y: e.clientY }); } }}
         onMouseUp={() => { setDraggingNode(null); setIsPanning(false); setLinkingSourceId(null); }}>
         <div className="absolute top-4 right-4 flex gap-3 z-30">
-             <button onClick={() => setShowImport(true)} className="px-4 py-2 bg-slate-800 text-white rounded-lg flex items-center gap-2 border border-slate-700"><UploadCloud className="w-4 h-4" /> {t.importBtn}</button>
-             <button onClick={generatePython} className="px-4 py-2 bg-cyan-600 text-white rounded-lg flex items-center gap-2 shadow-cyan-500/20"><Download className="w-4 h-4" /> {t.export}</button>
+             {activeChallenge ? (
+                 <button 
+                    onClick={handleVerify} 
+                    disabled={isVerifying}
+                    className="px-6 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white rounded-lg flex items-center gap-2 shadow-lg shadow-orange-500/20 font-bold transition-all"
+                 >
+                    {isVerifying ? <Loader2 className="w-4 h-4 animate-spin"/> : <CheckCircle className="w-4 h-4" />} 
+                    {isVerifying ? t.verifying : t.verify}
+                 </button>
+             ) : (
+                 <>
+                    <button onClick={() => setShowImport(true)} className="px-4 py-2 bg-slate-800 text-white rounded-lg flex items-center gap-2 border border-slate-700 hover:bg-slate-700 transition-colors"><UploadCloud className="w-4 h-4" /> {t.importBtn}</button>
+                    <button onClick={generatePython} className="px-4 py-2 bg-cyan-600 text-white rounded-lg flex items-center gap-2 shadow-cyan-500/20 hover:bg-cyan-500 transition-colors"><Download className="w-4 h-4" /> {t.export}</button>
+                 </>
+             )}
         </div>
         <div className="w-full h-full" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0' }}>
             <svg className="absolute overflow-visible pointer-events-none">
