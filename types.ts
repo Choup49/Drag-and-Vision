@@ -5,7 +5,8 @@ export enum NodeType {
   AI = 'AI',
   UTILITY = 'UTILITY',
   OUTPUT = 'OUTPUT',
-  CUSTOM = 'CUSTOM'
+  CUSTOM = 'CUSTOM',
+  LOGIC = 'LOGIC'
 }
 
 export type Language = 'en' | 'fr';
@@ -17,13 +18,13 @@ export interface NodeDefinition {
   type: NodeType;
   description: string;
   description_fr?: string;
-  category: 'input' | 'transform' | 'ai' | 'utility' | 'output' | 'custom';
-  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom';
+  category: 'input' | 'transform' | 'ai' | 'utility' | 'output' | 'custom' | 'logic';
+  library: 'Core' | 'OpenCV' | 'MediaPipe' | 'Custom' | 'Logic';
   pythonClass: string;
   pythonTemplate: string;
   requiredImports?: string[];
   inputs: number;
-  outputs: number;
+  outputs: number; // 0, 1, or 2 (for Logic)
 }
 
 export interface Position {
@@ -50,6 +51,7 @@ export interface PipelineConnection {
   id: string;
   sourceNodeId: string;
   targetNodeId: string;
+  sourceHandle?: 'main' | 'true' | 'false'; // Distinguish outputs
 }
 
 export interface Challenge {
@@ -67,14 +69,12 @@ export interface Challenge {
   isUserCreated?: boolean;
 }
 
-// Added ValidationResult to fix missing export error
 export interface ValidationResult {
   success: boolean;
   message: string;
   hint?: string;
 }
 
-// Added CppTranspilationResult to fix missing export error
 export interface CppTranspilationResult {
   cppCode: string;
   cmakeCode: string;

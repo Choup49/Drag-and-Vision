@@ -189,6 +189,23 @@ export const AVAILABLE_NODES: NodeDefinition[] = [
     outputs: 1
   },
 
+  // --- LOGIC CONTROL ---
+  {
+    id: 'logic_if_face',
+    name: 'If Face Detected',
+    name_fr: 'Si Visage Détecté',
+    type: NodeType.LOGIC,
+    description: 'Branch if a face is found',
+    description_fr: 'Embranchement si un visage est trouvé',
+    category: 'logic',
+    library: 'Logic',
+    pythonClass: 'Logic',
+    pythonTemplate: `if {input}_detections and len({input}_detections) > 0:`, // Special template handled by transpiler
+    requiredImports: [],
+    inputs: 1,
+    outputs: 2 // True/False handles
+  },
+
   // --- OPENCV TRANSFORMS ---
   {
     id: 'cv_gray',
@@ -307,7 +324,7 @@ export const AVAILABLE_NODES: NodeDefinition[] = [
     category: 'ai',
     library: 'MediaPipe',
     pythonClass: 'mp.solutions.face_detection',
-    pythonTemplate: `# Setup\nimport mediapipe as mp\nmp_face = mp.solutions.face_detection\nface_det = mp_face.FaceDetection()\nmp_draw = mp.solutions.drawing_utils\n# Process\n{output} = {input}.copy()\nres = face_det.process(cv2.cvtColor({input}, cv2.COLOR_BGR2RGB))\nif res.detections:\n    for det in res.detections: mp_draw.draw_detection({output}, det)`,
+    pythonTemplate: `# Setup\nimport mediapipe as mp\nmp_face = mp.solutions.face_detection\nface_det = mp_face.FaceDetection()\nmp_draw = mp.solutions.drawing_utils\n# Process\n{output} = {input}.copy()\n{output}_detections = []\nres = face_det.process(cv2.cvtColor({input}, cv2.COLOR_BGR2RGB))\nif res.detections:\n    {output}_detections = res.detections\n    for det in res.detections: mp_draw.draw_detection({output}, det)`,
     requiredImports: ['cv2', 'mediapipe as mp'],
     inputs: 1,
     outputs: 1
@@ -360,6 +377,7 @@ export const AVAILABLE_NODES: NodeDefinition[] = [
 ];
 
 export const CHALLENGES: Challenge[] = [
+  // ... (Existing Challenges Kept Same - omitted for brevity in this specific update as requested mainly for logic) ...
   // --- THEME: BASIC ---
   {
     id: 'ch_basic_easy',

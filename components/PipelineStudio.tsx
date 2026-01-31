@@ -4,7 +4,7 @@ import { AVAILABLE_NODES, TRANSLATIONS } from '../constants';
 import { PipelineNode, PipelineConnection, NodeType, NodeDefinition, Position, Language, Challenge, DroidCamConfig } from '../types';
 import { 
     Plus, Trash2, Download, X, Zap, FileVideo, Camera, Cpu, Layers, 
-    ZoomIn, ZoomOut, RotateCcw, Settings2, Eye, UploadCloud, Loader2, PlayCircle, CheckCircle, AlertOctagon 
+    ZoomIn, ZoomOut, RotateCcw, Settings2, Eye, UploadCloud, Loader2, PlayCircle, CheckCircle, AlertOctagon, GitBranch 
 } from 'lucide-react';
 import { parsePythonToPipeline, validateChallengeSolution } from '../services/geminiService';
 
@@ -64,7 +64,9 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
   const [pan, setPan] = useState<Position>({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<Position>({ x: 0, y: 0 });
-  const [linkingSourceId, setLinkingSourceId] = useState<string | null>(null);
+  
+  // Updated Linking State to include handle type
+  const [linkingSource, setLinkingSource] = useState<{ id: string, handle: 'main' | 'true' | 'false' } | null>(null);
   const [mousePos, setMousePos] = useState<Position>({ x: 0, y: 0 });
   const [showCode, setShowCode] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
@@ -89,51 +91,140 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     setNodes([...nodes, newNode]);
   };
 
-  const getExecutionOrder = () => {
-    const sources = nodes.filter(n => allNodes.find(d => d.id === n.defId)?.type === NodeType.SOURCE);
-    if (sources.length === 0) return [];
-    const order: string[] = [];
-    const visited = new Set<string>();
-    const queue = [sources[0].uuid];
-    while (queue.length > 0) {
-        const id = queue.shift()!;
-        if (visited.has(id)) continue;
-        visited.add(id);
-        order.push(id);
-        connections.filter(c => c.sourceNodeId === id).forEach(c => queue.push(c.targetNodeId));
+  /**
+   * RECURSIVE GRAPH TRAVERSAL
+   * Handles branching (if/else) and Python indentation properly.
+   */
+  const traverseGraph = (currentNodeId: string, visited: Set<string>, indentLevel: number): string => {
+    if (visited.has(currentNodeId)) return ""; // Avoid cycles
+    visited.add(currentNodeId);
+
+    const node = nodes.find(n => n.uuid === currentNodeId);
+    if (!node) return "";
+    const def = allNodes.find(d => d.id === node.defId);
+    if (!def) return "";
+
+    const indent = "    ".repeat(indentLevel);
+    let codeBlock = "";
+
+    // 1. Determine Inputs
+    // Find connection pointing TO this node
+    const incomingConn = connections.find(c => c.targetNodeId === currentNodeId);
+    // Standard input variable name or default 'frame_IN'
+    const inputVar = incomingConn ? `frame_${incomingConn.sourceNodeId.split('-')[0]}` : "frame_IN";
+    // Output variable name for this node
+    const outputVar = `frame_${currentNodeId.split('-')[0]}`;
+    const idShort = currentNodeId.split('-')[0];
+
+    // 2. Generate Code for Current Node
+    if (def.type === NodeType.LOGIC) {
+        // Logic Node (e.g., If Face Detected)
+        // Only supports Python Template that starts with control flow keyword (if, for)
+        let line = def.pythonTemplate
+            .replace(/{input}/g, inputVar)
+            .replace(/{output}/g, outputVar)
+            .replace(/{id}/g, idShort);
+        
+        codeBlock += `${indent}${line}\n`;
+
+        // 3. Handle Branching (True/False)
+        const trueConn = connections.find(c => c.sourceNodeId === currentNodeId && c.sourceHandle === 'true');
+        const falseConn = connections.find(c => c.sourceNodeId === currentNodeId && c.sourceHandle === 'false');
+
+        if (trueConn) {
+             codeBlock += traverseGraph(trueConn.targetNodeId, visited, indentLevel + 1);
+        } else {
+             codeBlock += `${indent}    pass\n`;
+        }
+
+        if (falseConn) {
+            codeBlock += `${indent}else:\n`;
+            codeBlock += traverseGraph(falseConn.targetNodeId, visited, indentLevel + 1);
+        }
+
+    } else {
+        // Standard Process/AI Node
+        if (def.pythonTemplate.includes("# Process")) {
+            let p = def.pythonTemplate.split("# Process")[1];
+            p = p.replace(/{input}/g, inputVar).replace(/{output}/g, outputVar).replace(/{id}/g, idShort);
+            
+            // Handle multi-line templates with proper indentation
+            const lines = p.split('\n').filter(l => l.trim() !== '');
+            lines.forEach(l => {
+                codeBlock += `${indent}${l.trim()}\n`;
+            });
+        } else {
+             let line = def.pythonTemplate
+                .replace(/{input}/g, inputVar)
+                .replace(/{output}/g, outputVar)
+                .replace(/{id}/g, idShort);
+             codeBlock += `${indent}${line}\n`;
+        }
+
+        // 3. Continue to Next Node (Standard linear flow or main output)
+        const nextConn = connections.find(c => c.sourceNodeId === currentNodeId && (!c.sourceHandle || c.sourceHandle === 'main'));
+        if (nextConn) {
+            codeBlock += traverseGraph(nextConn.targetNodeId, visited, indentLevel);
+        }
     }
-    return order;
+
+    return codeBlock;
   };
 
   const generatePython = () => {
-    const order = getExecutionOrder();
-    if (order.length === 0) { setGeneratedCode("# Error: No sequence found."); setShowCode(true); return; }
+    // Find Source Nodes (Roots)
+    const sources = nodes.filter(n => allNodes.find(d => d.id === n.defId)?.type === NodeType.SOURCE);
+    if (sources.length === 0) { setGeneratedCode("# Error: No source node (Webcam/File) found."); setShowCode(true); return; }
+
     let code = "import cv2\nimport numpy as np\n";
+    
+    // Collect Imports
     const imports = new Set<string>();
-    order.forEach(id => allNodes.find(d => d.id === nodes.find(n => n.uuid === id)!.defId)?.requiredImports?.forEach(i => imports.add(i)));
+    nodes.forEach(n => {
+        const def = allNodes.find(d => d.id === n.defId);
+        def?.requiredImports?.forEach(i => imports.add(i));
+    });
     imports.forEach(i => { if (!code.includes(`import ${i}`)) code += `import ${i}\n`; });
 
     code += "\n# Setup\n";
-    order.forEach(id => {
-        const node = nodes.find(n => n.uuid === id)!;
-        const def = allNodes.find(d => d.id === node.defId)!;
-        if (def.pythonTemplate.includes("# Setup")) {
-            let s = def.pythonTemplate.split("# Process")[0].replace(/{id}/g, id.split('-')[0]);
-            if (node.defId === 'src_droidcam') s = s.replace(/{ip}/g, node.params.droidCam?.ip || '').replace(/{port}/g, node.params.droidCam?.port || '');
-            code += s + "\n";
+    
+    // Generate Setup Block (Iterate all nodes for setup part)
+    nodes.forEach(n => {
+        const def = allNodes.find(d => d.id === n.defId);
+        if (def && def.pythonTemplate.includes("# Setup")) {
+             let s = def.pythonTemplate.split("# Process")[0].replace(/{id}/g, n.uuid.split('-')[0]);
+             if (n.defId === 'src_droidcam') s = s.replace(/{ip}/g, n.params.droidCam?.ip || '').replace(/{port}/g, n.params.droidCam?.port || '');
+             code += s + "\n";
         }
     });
 
     code += "\nwhile True:\n";
-    order.forEach(id => {
-        const node = nodes.find(n => n.uuid === id)!;
-        const def = allNodes.find(d => d.id === node.defId)!;
-        const input = connections.find(c => c.targetNodeId === id) ? `frame_${connections.find(c => c.targetNodeId === id)!.sourceNodeId.split('-')[0]}` : "frame_IN";
-        const output = `frame_${id.split('-')[0]}`;
-        let p = def.pythonTemplate.includes("# Process") ? def.pythonTemplate.split("# Process")[1] : def.pythonTemplate;
-        p = p.replace(/{input}/g, input).replace(/{output}/g, output).replace(/{id}/g, id.split('-')[0]);
-        code += p.split('\n').map(l => "    " + l).join('\n') + "\n";
+    
+    // Traverse Graph starting from Source(s)
+    const visited = new Set<string>();
+    sources.forEach(source => {
+        // Special case for Source Nodes inside the loop: usually just 'read()'
+        const def = allNodes.find(d => d.id === source.defId);
+        const outputVar = `frame_${source.uuid.split('-')[0]}`;
+        
+        let readLine = "";
+        if (def?.pythonTemplate.includes("# Process")) {
+             let p = def.pythonTemplate.split("# Process")[1];
+             readLine = p.replace(/{output}/g, outputVar).replace(/{id}/g, source.uuid.split('-')[0]);
+        }
+        
+        // Indent source read
+        readLine.split('\n').filter(l => l.trim()).forEach(l => {
+            code += `    ${l.trim()}\n`;
+        });
+
+        // Start traversal from connected children
+        const children = connections.filter(c => c.sourceNodeId === source.uuid);
+        children.forEach(child => {
+             code += traverseGraph(child.targetNodeId, visited, 1);
+        });
     });
+
     code += "    if cv2.waitKey(1) & 0xFF == ord('q'): break\ncap.release()\ncv2.destroyAllWindows()";
     setGeneratedCode(code);
     setShowCode(true);
@@ -154,8 +245,15 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
     const def = allNodes.find(d => d.id === defId);
     if (def?.type === NodeType.SOURCE) return <Camera className="w-5 h-5" />;
     if (def?.type === NodeType.AI) return <Zap className="w-5 h-5" />;
+    if (def?.type === NodeType.LOGIC) return <GitBranch className="w-5 h-5" />;
     if (def?.type === NodeType.OUTPUT) return <Eye className="w-5 h-5" />;
     return <Cpu className="w-5 h-5" />;
+  };
+
+  // Helper for starting a connection
+  const startConnection = (e: React.MouseEvent, nodeId: string, handle: 'main' | 'true' | 'false') => {
+      e.stopPropagation();
+      setLinkingSource({ id: nodeId, handle });
   };
 
   return (
@@ -211,7 +309,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
             )}
         </div>
         <div className="flex gap-1 p-2 bg-slate-900/50">
-             {['Core', 'OpenCV', 'MediaPipe', 'Custom'].map(lib => <button key={lib} onClick={() => setSelectedLibrary(lib)} className={`flex-1 py-1.5 text-[9px] uppercase font-bold rounded transition-all ${selectedLibrary === lib ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{lib}</button>)}
+             {['Core', 'OpenCV', 'MediaPipe', 'Logic', 'Custom'].map(lib => <button key={lib} onClick={() => setSelectedLibrary(lib)} className={`flex-1 py-1.5 text-[9px] uppercase font-bold rounded transition-all ${selectedLibrary === lib ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{lib}</button>)}
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {allNodes.filter(n => n.library === selectedLibrary).map(node => (
@@ -238,7 +336,7 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
             }
         }} 
         onMouseDown={(e) => { if (e.target === e.currentTarget) { setIsPanning(true); setPanStart({ x: e.clientX, y: e.clientY }); } }}
-        onMouseUp={() => { setDraggingNode(null); setIsPanning(false); setLinkingSourceId(null); }}>
+        onMouseUp={() => { setDraggingNode(null); setIsPanning(false); setLinkingSource(null); }}>
         <div className="absolute top-4 right-4 flex gap-3 z-30">
              {activeChallenge ? (
                  <button 
@@ -261,21 +359,40 @@ const PipelineStudio: React.FC<PipelineStudioProps> = ({ customNodes, language, 
                 {connections.map(c => {
                     const s = nodes.find(n => n.uuid === c.sourceNodeId); const t = nodes.find(n => n.uuid === c.targetNodeId);
                     if (!s || !t) return null;
-                    return <path key={c.id} d={`M ${s.position.x + 180} ${s.position.y + 40} C ${s.position.x + 240} ${s.position.y + 40}, ${t.position.x - 60} ${t.position.y + 40}, ${t.position.x} ${t.position.y + 40}`} stroke="#64748b" strokeWidth="2" fill="none" className="cursor-pointer hover:stroke-red-500" onClick={() => setConnections(connections.filter(con => con.id !== c.id))} />;
+                    
+                    // Visual adjustment for handles
+                    let startY = s.position.y + 40;
+                    let color = "#64748b"; // default slate
+                    if (c.sourceHandle === 'true') { startY = s.position.y + 25; color = "#22c55e"; } // Green
+                    if (c.sourceHandle === 'false') { startY = s.position.y + 55; color = "#ef4444"; } // Red
+
+                    return <path key={c.id} d={`M ${s.position.x + 180} ${startY} C ${s.position.x + 240} ${startY}, ${t.position.x - 60} ${t.position.y + 40}, ${t.position.x} ${t.position.y + 40}`} stroke={color} strokeWidth="2" fill="none" className="cursor-pointer hover:stroke-white" onClick={() => setConnections(connections.filter(con => con.id !== c.id))} />;
                 })}
-                {linkingSourceId && <path d={`M ${nodes.find(n => n.uuid === linkingSourceId)!.position.x + 180} ${nodes.find(n => n.uuid === linkingSourceId)!.position.y + 40} L ${mousePos.x} ${mousePos.y}`} stroke="#06b6d4" strokeWidth="2" strokeDasharray="5,5" fill="none" />}
+                {linkingSource && (
+                     <path d={`M ${nodes.find(n => n.uuid === linkingSource.id)!.position.x + 180} ${nodes.find(n => n.uuid === linkingSource.id)!.position.y + (linkingSource.handle === 'true' ? 25 : linkingSource.handle === 'false' ? 55 : 40)} L ${mousePos.x} ${mousePos.y}`} stroke={linkingSource.handle === 'true' ? '#22c55e' : linkingSource.handle === 'false' ? '#ef4444' : '#06b6d4'} strokeWidth="2" strokeDasharray="5,5" fill="none" />
+                )}
             </svg>
             {nodes.map(n => {
                 const def = allNodes.find(d => d.id === n.defId)!;
-                return <div key={n.uuid} className={`absolute w-[180px] bg-slate-900 border-2 rounded-lg p-3 shadow-xl ${def.type === NodeType.SOURCE ? 'border-green-500/50' : 'border-cyan-500/50'}`} style={{ left: n.position.x, top: n.position.y }} onMouseDown={(e) => { e.stopPropagation(); setDraggingNode(n.uuid); const rect = containerRef.current!.getBoundingClientRect(); setDragOffset({ x: (e.clientX - rect.left - pan.x) / zoom - n.position.x, y: (e.clientY - rect.top - pan.y) / zoom - n.position.y }); }}>
+                return <div key={n.uuid} className={`absolute w-[180px] bg-slate-900 border-2 rounded-lg p-3 shadow-xl ${def.type === NodeType.SOURCE ? 'border-green-500/50' : def.type === NodeType.LOGIC ? 'border-purple-500/50' : 'border-cyan-500/50'}`} style={{ left: n.position.x, top: n.position.y }} onMouseDown={(e) => { e.stopPropagation(); setDraggingNode(n.uuid); const rect = containerRef.current!.getBoundingClientRect(); setDragOffset({ x: (e.clientX - rect.left - pan.x) / zoom - n.position.x, y: (e.clientY - rect.top - pan.y) / zoom - n.position.y }); }}>
                     <div className="flex items-center gap-2 mb-2 font-bold text-xs">{getIcon(n.defId)} {language === 'fr' ? def.name_fr : def.name}</div>
-                    <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono">
-                        {def.inputs > 0 && <div className="w-4 h-4 rounded-full border border-slate-600 flex items-center justify-center cursor-crosshair" onMouseUp={() => linkingSourceId && linkingSourceId !== n.uuid && setConnections([...connections, { id: crypto.randomUUID(), sourceNodeId: linkingSourceId, targetNodeId: n.uuid }])}><div className="w-1.5 h-1.5 bg-slate-600 rounded-full" /></div>}
-                        <div className="flex gap-1">
+                    <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono relative h-4">
+                        {def.inputs > 0 && <div className="absolute left-[-18px] top-1 w-4 h-4 rounded-full border border-slate-600 bg-slate-900 flex items-center justify-center cursor-crosshair z-10" onMouseUp={() => linkingSource && linkingSource.id !== n.uuid && setConnections([...connections, { id: crypto.randomUUID(), sourceNodeId: linkingSource.id, targetNodeId: n.uuid, sourceHandle: linkingSource.handle }])}><div className="w-1.5 h-1.5 bg-slate-600 rounded-full" /></div>}
+                        
+                        <div className="flex gap-1 ml-2">
                             {n.defId === 'src_droidcam' && <button onClick={() => setConfigNodeId(n.uuid)} className="hover:text-cyan-400"><Settings2 className="w-3 h-3"/></button>}
                             <button onClick={() => { setNodes(nodes.filter(nd => nd.uuid !== n.uuid)); setConnections(connections.filter(c => c.sourceNodeId !== n.uuid && c.targetNodeId !== n.uuid)); }} className="hover:text-red-400"><Trash2 className="w-3 h-3"/></button>
                         </div>
-                        {def.outputs > 0 && <div className="w-4 h-4 rounded-full border border-cyan-500 flex items-center justify-center cursor-crosshair" onMouseDown={(e) => { e.stopPropagation(); setLinkingSourceId(n.uuid); }}><div className="w-1.5 h-1.5 bg-cyan-500 rounded-full" /></div>}
+                        
+                        {/* Logic Nodes have 2 outputs, others have 1 */}
+                        {def.type === NodeType.LOGIC ? (
+                            <div className="absolute right-[-18px] top-[-8px] flex flex-col gap-1">
+                                <div title="True" className="w-4 h-4 rounded-full border border-green-500 bg-slate-900 flex items-center justify-center cursor-crosshair z-10" onMouseDown={(e) => startConnection(e, n.uuid, 'true')}><div className="w-1.5 h-1.5 bg-green-500 rounded-full" /></div>
+                                <div title="False" className="w-4 h-4 rounded-full border border-red-500 bg-slate-900 flex items-center justify-center cursor-crosshair z-10" onMouseDown={(e) => startConnection(e, n.uuid, 'false')}><div className="w-1.5 h-1.5 bg-red-500 rounded-full" /></div>
+                            </div>
+                        ) : def.outputs > 0 && (
+                            <div className="absolute right-[-18px] top-1 w-4 h-4 rounded-full border border-cyan-500 bg-slate-900 flex items-center justify-center cursor-crosshair z-10" onMouseDown={(e) => startConnection(e, n.uuid, 'main')}><div className="w-1.5 h-1.5 bg-cyan-500 rounded-full" /></div>
+                        )}
                     </div>
                 </div>;
             })}
